@@ -44,7 +44,7 @@ export function JuecesTable({ jueces }: { jueces: Juez[] }) {
     try {
       await eliminarJuez(id)
     } catch (error) {
-      console.error("[v0] Error al eliminar juez:", error)
+      console.error("[] Error al eliminar juez:", error)
     }
   }
 

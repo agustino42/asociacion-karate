@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <Link href="/admin" className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-linear-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
                   <span className="text-xl text-white font-bold">空</span>
                 </div>
                 <div>

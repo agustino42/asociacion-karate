@@ -78,7 +78,7 @@ export async function obtenerAtletas() {
     .order("created_at", { ascending: false })
 
   if (error) {
-    console.error("[v0] Error al obtener atletas:", error)
+    console.error("[] Error al obtener atletas:", error)
     return []
   }
 

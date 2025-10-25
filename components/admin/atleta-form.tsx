@@ -63,14 +63,22 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
         await crearAtleta(dataToSubmit)
       }
     } catch (err: any) {
-      console.error("[v0] Error en formulario:", err)
+      console.error("[] Error en formulario:", err)
       setError(err.message || "Error al guardar el atleta")
       setLoading(false)
     }
   }
 
   return (
-    <Card>
+    <Card> 
+      {/**  
+      OPERADOR
+      - Si existe un objeto 'atleta' (truthy) → muestra "Editar Atleta"
+      - Si 'atleta' es null/undefined (falsy) → muestra "Nuevo Atleta"
+      
+      Propósito: Reutilizar el mismo componente para crear y editar registros
+      Contexto: Formulario CRUD de atletas*/}
+
       <CardHeader>
         <CardTitle>{atleta ? "Editar Atleta" : "Nuevo Atleta"}</CardTitle>
       </CardHeader>

@@ -21,7 +21,7 @@ export async function crearEntrenador(formData: EntrenadorFormData) {
   const { error } = await supabase.from("entrenadores").insert([formData])
 
   if (error) {
-    console.error("[v0] Error al crear entrenador:", error)
+    console.error("[] Error al crear entrenador:", error)
     throw new Error(error.message)
   }
 
@@ -35,7 +35,7 @@ export async function actualizarEntrenador(id: string, formData: EntrenadorFormD
   const { error } = await supabase.from("entrenadores").update(formData).eq("id", id)
 
   if (error) {
-    console.error("[v0] Error al actualizar entrenador:", error)
+    console.error("[] Error al actualizar entrenador:", error)
     throw new Error(error.message)
   }
 
@@ -49,7 +49,7 @@ export async function eliminarEntrenador(id: string) {
   const { error } = await supabase.from("entrenadores").delete().eq("id", id)
 
   if (error) {
-    console.error("[v0] Error al eliminar entrenador:", error)
+    console.error("[] Error al eliminar entrenador:", error)
     throw new Error(error.message)
   }
 
@@ -62,7 +62,7 @@ export async function obtenerEntrenadores() {
   const { data, error } = await supabase.from("entrenadores").select("*").order("created_at", { ascending: false })
 
   if (error) {
-    console.error("[v0] Error al obtener entrenadores:", error)
+    console.error("[] Error al obtener entrenadores:", error)
     return []
   }
 
@@ -75,7 +75,7 @@ export async function obtenerEntrenador(id: string) {
   const { data, error } = await supabase.from("entrenadores").select("*").eq("id", id).single()
 
   if (error) {
-    console.error("[v0] Error al obtener entrenador:", error)
+    console.error("[] Error al obtener entrenador:", error)
     return null
   }
 

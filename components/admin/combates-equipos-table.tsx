@@ -45,7 +45,7 @@ export function CombatesEquiposTable({ combates }: { combates: CombateEquipo[] }
     try {
       await eliminarCombateEquipo(id)
     } catch (error) {
-      console.error("[v0] Error al eliminar combate por equipos:", error)
+      console.error("[] Error al eliminar combate por equipos:", error)
     }
   }
 

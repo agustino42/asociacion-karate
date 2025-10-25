@@ -44,7 +44,7 @@ export function EntrenadoresTable({ entrenadores }: { entrenadores: Entrenador[]
     try {
       await eliminarEntrenador(id)
     } catch (error) {
-      console.error("[v0] Error al eliminar entrenador:", error)
+      console.error("[] Error al eliminar entrenador:", error)
     }
   }
 

@@ -55,7 +55,7 @@ export function JuezForm({ juez }: JuezFormProps) {
         await crearJuez(dataToSubmit)
       }
     } catch (err: any) {
-      console.error("[v0] Error en formulario:", err)
+      console.error("[] Error en formulario:", err)
       setError(err.message || "Error al guardar el juez")
       setLoading(false)
     }

@@ -21,7 +21,7 @@ export async function crearJuez(formData: JuezFormData) {
   const { error } = await supabase.from("jueces").insert([formData])
 
   if (error) {
-    console.error("[v0] Error al crear juez:", error)
+    console.error("[] Error al crear juez:", error)
     throw new Error(error.message)
   }
 
@@ -35,7 +35,7 @@ export async function actualizarJuez(id: string, formData: JuezFormData) {
   const { error } = await supabase.from("jueces").update(formData).eq("id", id)
 
   if (error) {
-    console.error("[v0] Error al actualizar juez:", error)
+    console.error("[] Error al actualizar juez:", error)
     throw new Error(error.message)
   }
 
@@ -49,7 +49,7 @@ export async function eliminarJuez(id: string) {
   const { error } = await supabase.from("jueces").delete().eq("id", id)
 
   if (error) {
-    console.error("[v0] Error al eliminar juez:", error)
+    console.error("[] Error al eliminar juez:", error)
     throw new Error(error.message)
   }
 

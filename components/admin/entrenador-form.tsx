@@ -55,7 +55,7 @@ export function EntrenadorForm({ entrenador }: EntrenadorFormProps) {
         await crearEntrenador(dataToSubmit)
       }
     } catch (err: any) {
-      console.error("[v0] Error en formulario:", err)
+      console.error("[] Error en formulario:", err)
       setError(err.message || "Error al guardar el entrenador")
       setLoading(false)
     }

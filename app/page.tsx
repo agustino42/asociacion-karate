@@ -7,19 +7,36 @@ import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ThemeToggle } from "@/components/theme-toggle"
 
+/**
+ * Página principal (Dashboard público) de la aplicación de Karate
+ * 
+ * CARACTERÍSTICAS PRINCIPALES:
+ * - Dashboard público con métricas y estadísticas
+ * - Visualización en tiempo real de combates en vivo
+ * - Rankings de atletas y equipos
+ * - Información de entrenadores y atletas
+ * - Diseño responsive y moderno
+ * 
+ * NOTA: Esta es una Server Component que ejecuta todas las queries en el servidor
+ */
 export default async function HomePage() {
   const supabase = await getSupabaseServerClient()
 
-  // Obtener datos en paralelo
+  /**
+   * OBTENCIÓN DE DATOS EN PARALELO:
+   * Se ejecutan todas las consultas simultáneamente para mejor performance
+   * Cada consulta obtiene datos específicos para diferentes secciones del dashboard
+   */
   const [
-    { data: rankingAtletas },
-    { data: rankingEquipos },
-    { data: combatesRecientes },
-    { data: combatesEnVivo },
-    { data: atletas },
-    { data: entrenadores },
-    { data: proximosCombates },
+    { data: rankingAtletas },      // Top 10 atletas por puntos
+    { data: rankingEquipos },      // Top 5 equipos por puntos  
+    { data: combatesRecientes },   // Últimos 5 combates finalizados
+    { data: combatesEnVivo },      // Combates actualmente en curso
+    { data: atletas },             // 12 atletas activos para mostrar
+    { data: entrenadores },        // Todos los entrenadores activos
+    { data: proximosCombates },    // Próximos 5 combates programados
   ] = await Promise.all([
+    // CONSULTA 1: Ranking de atletas (top 10)
     supabase
       .from("rankings_atletas")
       .select(
@@ -30,6 +47,8 @@ export default async function HomePage() {
       )
       .order("puntos_totales", { ascending: false })
       .limit(10),
+    
+    // CONSULTA 2: Ranking de equipos (top 5)  
     supabase
       .from("rankings_equipos")
       .select(
@@ -40,6 +59,8 @@ export default async function HomePage() {
       )
       .order("puntos_totales", { ascending: false })
       .limit(5),
+    
+    // CONSULTA 3: Combates recientes finalizados
     supabase
       .from("combates_individuales")
       .select(
@@ -53,6 +74,8 @@ export default async function HomePage() {
       .eq("estado", "finalizado")
       .order("fecha_combate", { ascending: false })
       .limit(5),
+    
+    // CONSULTA 4: Combates actualmente en vivo
     supabase
       .from("combates_individuales")
       .select(
@@ -64,6 +87,8 @@ export default async function HomePage() {
       )
       .eq("estado", "en_curso")
       .order("fecha_combate", { ascending: false }),
+    
+    // CONSULTA 5: Atletas activos (limitado a 12)
     supabase
       .from("atletas")
       .select(
@@ -75,6 +100,8 @@ export default async function HomePage() {
       .eq("activo", true)
       .order("nombre")
       .limit(12),
+    
+    // CONSULTA 6: Entrenadores activos
     supabase
       .from("entrenadores")
       .select(
@@ -85,6 +112,8 @@ export default async function HomePage() {
       )
       .eq("activo", true)
       .order("anos_experiencia", { ascending: false }),
+    
+    // CONSULTA 7: Próximos combates programados
     supabase
       .from("combates_individuales")
       .select(
@@ -100,13 +129,14 @@ export default async function HomePage() {
   ])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Hero Section */}
+    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
+      {/* ===== HEADER ===== */}
       <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+            {/* LOGO Y NOMBRE */}
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-linear-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
                 <span className="text-2xl text-white font-bold">空</span>
               </div>
               <div>
@@ -114,6 +144,8 @@ export default async function HomePage() {
                 <p className="text-sm text-muted-foreground">Excelencia en Artes Marciales</p>
               </div>
             </div>
+            
+            {/* CONTROLES DEL HEADER */}
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <Link href="/login">
@@ -127,15 +159,19 @@ export default async function HomePage() {
         </div>
       </header>
 
+      {/* ===== CONTENIDO PRINCIPAL ===== */}
       <main className="container mx-auto px-4 py-12 space-y-16">
-        {/* Hero Banner */}
+        
+        {/* === HERO BANNER === */}
         <section className="text-center space-y-4 py-12">
-          <h2 className="text-5xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-            Bienvenidos a la Asociación
+          <h2 className="text-5xl font-bold bg-linear-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            ASO-KARATE 
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Promoviendo la disciplina, el respeto y la excelencia en el arte del Karate
           </p>
+          
+          {/* MÉTRICAS PRINCIPALES */}
           <div className="flex justify-center gap-4 pt-4">
             <Card className="w-32">
               <CardContent className="pt-6 text-center">
@@ -161,6 +197,7 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* === COMBATES EN VIVO (Condicional) === */}
         {combatesEnVivo && combatesEnVivo.length > 0 && (
           <section className="space-y-6">
             <div className="flex items-center gap-3">
@@ -180,6 +217,7 @@ export default async function HomePage() {
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1">
+                        {/* ATLETA 1 */}
                         <div className="text-right flex-1">
                           <p className="font-semibold text-xl">
                             {combate.atleta1.nombre} {combate.atleta1.apellido}
@@ -188,6 +226,8 @@ export default async function HomePage() {
                             {combate.atleta1.cinturon}
                           </Badge>
                         </div>
+                        
+                        {/* MARCADOR CENTRAL */}
                         <div className="text-center px-6">
                           <Badge className="mb-2 bg-orange-600">
                             <Clock className="h-3 w-3 mr-1" />
@@ -202,6 +242,8 @@ export default async function HomePage() {
                             {combate.categoria} • {combate.duracion_minutos} min
                           </p>
                         </div>
+                        
+                        {/* ATLETA 2 */}
                         <div className="text-left flex-1">
                           <p className="font-semibold text-xl">
                             {combate.atleta2.nombre} {combate.atleta2.apellido}
@@ -219,7 +261,7 @@ export default async function HomePage() {
           </section>
         )}
 
-        {/* Resultados Recientes */}
+        {/* === RESULTADOS RECIENTES === */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
             <Trophy className="h-8 w-8 text-yellow-600" />
@@ -232,6 +274,7 @@ export default async function HomePage() {
           <div className="grid gap-4">
             {combatesRecientes && combatesRecientes.length > 0 ? (
               combatesRecientes.map((combate) => {
+                // Determinar ganador para estilos condicionales
                 const ganadorEsAtleta1 = combate.ganador?.nombre === combate.atleta1.nombre
                 const ganadorEsAtleta2 = combate.ganador?.nombre === combate.atleta2.nombre
 
@@ -240,6 +283,7 @@ export default async function HomePage() {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
+                          {/* ATLETA 1 CON INDICADOR DE GANADOR */}
                           <div className={`text-right flex-1 ${ganadorEsAtleta1 ? "opacity-100" : "opacity-50"}`}>
                             <p className="font-semibold text-lg">
                               {combate.atleta1.nombre} {combate.atleta1.apellido}
@@ -256,6 +300,8 @@ export default async function HomePage() {
                               </Badge>
                             )}
                           </div>
+                          
+                          {/* MARCADOR Y FECHA */}
                           <div className="text-center px-6">
                             <div className="flex items-center gap-3">
                               <span className={`text-3xl font-bold ${ganadorEsAtleta1 ? "text-green-600" : ""}`}>
@@ -270,6 +316,8 @@ export default async function HomePage() {
                               {new Date(combate.fecha_combate).toLocaleDateString()}
                             </p>
                           </div>
+                          
+                          {/* ATLETA 2 CON INDICADOR DE GANADOR */}
                           <div className={`text-left flex-1 ${ganadorEsAtleta2 ? "opacity-100" : "opacity-50"}`}>
                             <p className="font-semibold text-lg">
                               {combate.atleta2.nombre} {combate.atleta2.apellido}
@@ -297,6 +345,7 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* === PRÓXIMOS COMBATES (Condicional) === */}
         {proximosCombates && proximosCombates.length > 0 && (
           <section className="space-y-6">
             <div className="flex items-center gap-3">
@@ -312,10 +361,13 @@ export default async function HomePage() {
                 <Card key={combate.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="pt-6">
                     <div className="space-y-3">
+                      {/* INFORMACIÓN DEL COMBATE */}
                       <div className="flex items-center justify-between">
                         <Badge variant="secondary">{new Date(combate.fecha_combate).toLocaleDateString()}</Badge>
                         <Badge variant="outline">{combate.categoria}</Badge>
                       </div>
+                      
+                      {/* NOMBRES DE LOS ATLETAS */}
                       <div className="text-center">
                         <p className="font-semibold">
                           {combate.atleta1.nombre} {combate.atleta1.apellido}
@@ -333,6 +385,7 @@ export default async function HomePage() {
           </section>
         )}
 
+        {/* === MEJORES ENTRENADORES === */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-8 w-8 text-green-600" />
@@ -368,6 +421,8 @@ export default async function HomePage() {
                         <span className="text-sm">{entrenador.equipos?.length || 0} equipo(s)</span>
                       </div>
                     </div>
+                    
+                    {/* LISTA DE EQUIPOS DEL ENTRENADOR */}
                     {entrenador.equipos && entrenador.equipos.length > 0 && (
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Equipos:</p>
@@ -393,9 +448,9 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Rankings */}
+        {/* === RANKINGS (Doble columna) === */}
         <section className="grid lg:grid-cols-2 gap-8">
-          {/* Ranking de Atletas */}
+          {/* RANKING DE ATLETAS */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -450,7 +505,7 @@ export default async function HomePage() {
             </CardContent>
           </Card>
 
-          {/* Ranking de Equipos */}
+          {/* RANKING DE EQUIPOS */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -508,7 +563,7 @@ export default async function HomePage() {
           </Card>
         </section>
 
-        {/* Lista de Atletas */}
+        {/* === LISTA DE ATLETAS === */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
             <Users className="h-8 w-8 text-blue-600" />
@@ -549,12 +604,12 @@ export default async function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
+      {/* ===== FOOTER ===== */}
       <footer className="border-t bg-card mt-16">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-linear-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
                 <span className="text-lg text-white font-bold">空</span>
               </div>
               <p className="font-semibold">Asociación de Karate</p>
@@ -566,3 +621,31 @@ export default async function HomePage() {
     </div>
   )
 }
+
+/**
+ * ESTRUCTURA DEL COMPONENTE:
+ * 
+ * 1. HEADER
+ *    - Logo y nombre de la asociación
+ *    - Toggle de tema + botón de acceso admin
+ * 
+ * 2. MAIN CONTENT
+ *    - Hero Banner (métricas principales)
+ *    - Combates en Vivo (condicional)
+ *    - Resultados Recientes
+ *    - Próximos Combates (condicional)
+ *    - Mejores Entrenadores
+ *    - Rankings (Atletas + Equipos)
+ *    - Lista de Atletas
+ * 
+ * 3. FOOTER
+ *    - Información de la asociación
+ * 
+ * CARACTERÍSTICAS TÉCNICAS:
+ * - Server Component (Next.js 13+)
+ * - Consultas paralelizadas con Promise.all
+ * - Diseño completamente responsive
+ * - Estados condicionales para secciones sin datos
+ * - Iconografía consistente con Lucide React
+ * - Sistema de diseño con shadcn/ui
+ */
