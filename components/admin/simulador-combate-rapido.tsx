@@ -88,7 +88,7 @@ export function SimuladorCombateRapido() {
       setTiempoRestante(60 - tiempoActual)
 
       // Simular evento cada 3-8 segundos
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.6) {
         const evento = simulador.simularEvento(tiempoActual)
         if (evento) {
           setEventos(prev => [...prev, { ...evento, tiempo: tiempoActual }])
@@ -405,7 +405,7 @@ export function SimuladorCombateRapido() {
               </div>
 
               <div className="bg-white/70 dark:bg-black/30 rounded-lg p-4 max-h-60 overflow-y-auto">
-                <h5 className="font-bold mb-3">Resumen de la Batalla:</h5>
+                <h5 className="font-bold mb-3">Resumen de la Batalla:</h5>a
                 <div className="space-y-2">
                   {eventos.map((evento, idx) => (
                     <div key={idx} className="flex justify-between items-center text-sm">

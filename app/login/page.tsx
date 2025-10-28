@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
@@ -44,8 +43,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: "url('/karate1.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed"
+      }}
+    >
+      {/* Overlay sutil para mejor legibilidad */}
+      <div className="absolute inset-0 bg-black/20"></div>
+      
+      {/* Card idéntica a la original */}
+      <Card className="w-full max-w-md relative z-10">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center">
@@ -93,14 +105,14 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 p-4 bg-muted rounded-lg">
+          {/**   <div className="mt-6 p-4 bg-muted rounded-lg">
             <p className="text-sm text-muted-foreground text-center mb-2">Credenciales de prueba:</p>
             <p className="text-xs text-center font-mono">
               Email: admin@karate.com
               <br />
               Password: admin123
             </p>
-          </div>
+          </div>*/}
         </CardContent>
       </Card>
     </div>

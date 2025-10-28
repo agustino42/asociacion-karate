@@ -38,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </Link>
             </div>
 
-            <nav className="hidden md:flex items-center gap-4">
+            <nav className="hidden md:flex items-center gap-4 cursor-pointer">
               <Link href="/admin">
                 <Button variant="ghost">Dashboard</Button>
               </Link>
@@ -75,8 +75,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild className="md:hidden">
-                  <Link href="/admin">Dashboard</Link>
+                <DropdownMenuItem asChild className="md:hidden ">
+                  <Link href="/admin" className="cursor-pointer">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="md:hidden">
                   <Link href="/admin/atletas">Atletas</Link>

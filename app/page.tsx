@@ -1,11 +1,9 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Swords, Users, Award, Shield, Clock, Flame, TrendingUp } from "lucide-react"
-import Link from "next/link"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ThemeToggle } from "@/components/theme-toggle"
+import Cabeza from "@/components/home-frontend/Cabeza"
 
 /**
  * Página principal (Dashboard público) de la aplicación de Karate
@@ -131,33 +129,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
       {/* ===== HEADER ===== */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* LOGO Y NOMBRE */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-linear-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-2xl text-white font-bold">空</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold">Asociación de Karate</h1>
-                <p className="text-sm text-muted-foreground">Excelencia en Artes Marciales</p>
-              </div>
-            </div>
-            
-            {/* CONTROLES DEL HEADER */}
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Link href="/login">
-                <Button variant="outline">
-                  <Shield className="mr-2 h-4 w-4" />
-                  Acceso Admin
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+       <Cabeza />
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}
       <main className="container mx-auto px-4 py-12 space-y-16">
