@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { JuecesTable } from "@/components/admin/jueces-table"
+import JuecesControlPanel from "@/components/admin/JuecesControlPanel"
+
 
 export default async function JuecesPage() {
   const supabase = await createClient()
@@ -25,6 +27,7 @@ export default async function JuecesPage() {
       </div>
 
       <JuecesTable jueces={jueces || []} />
+      <JuecesControlPanel />
     </div>
   )
 }

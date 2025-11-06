@@ -11,7 +11,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Asociación de Karate - Excelencia en Artes Marciales",
   description: "Plataforma de gestión y rankings para la Asociación de Karate",
-  generator: "",
+ 
 }
 
 export default function RootLayout({

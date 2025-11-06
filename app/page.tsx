@@ -1,19 +1,29 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Trophy, Swords, Users, Award, Shield, Clock, Flame, TrendingUp } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import Cabeza from "@/components/home-frontend/Cabeza"
+import Navigation from "@/components/home-frontend/Navigation"
+import HeroBanner from "@/components/home-frontend/HeroBanner"
+import CombatesEnVivo from "@/components/home-frontend/CombatesEnVivo"
+import ResultadosRecientes from "@/components/home-frontend/ResultadosRecientes"
+import ProximosCombates from "@/components/home-frontend/ProximosCombates"
+import MejoresEntrenadores from "@/components/home-frontend/MejoresEntrenadores"
+import RankingsSection from "@/components/home-frontend/RankingsSection"
+import ListaAtletas from "@/components/home-frontend/ListaAtletas"
+import Footer from "@/components/home-frontend/Footer"
+import FAQSection from "@/components/home-frontend/FAQSection"
+import JuecesControlPanel from "@/components/admin/JuecesControlPanel"
+import type { Metadata } from "next"
+import Script from "next/script"
+
 
 /**
- * Página principal (Dashboard público) de la aplicación de Karate
+ * Landing Page de ASO-KARATE
  * 
  * CARACTERÍSTICAS PRINCIPALES:
- * - Dashboard público con métricas y estadísticas
+ * - Landing page moderna con navegación suave
+ * - Animaciones con Framer Motion
  * - Visualización en tiempo real de combates en vivo
  * - Rankings de atletas y equipos
  * - Información de entrenadores y atletas
- * - Diseño responsive y moderno
+ * - Diseño responsive y SEO optimizado
  * 
  * NOTA: Esta es una Server Component que ejecuta todas las queries en el servidor
  */
@@ -32,7 +42,8 @@ export default async function HomePage() {
     { data: combatesEnVivo },      // Combates actualmente en curso
     { data: atletas },             // 12 atletas activos para mostrar
     { data: entrenadores },        // Todos los entrenadores activos
-    { data: proximosCombates },    // Próximos 5 combates programados
+    { data: proximosCombates },  
+      // Próximos 5 combates programados
   ] = await Promise.all([
     // CONSULTA 1: Ranking de atletas (top 10)
     supabase
@@ -126,471 +137,183 @@ export default async function HomePage() {
       .limit(5),
   ])
 
+  
   return (
-    <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
-      {/* ===== HEADER ===== */}
-       <Cabeza />
+    <>
+      {/* EStructura Principal.. */}
+      
+      
+      <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
+        {/* ===== NAVIGATION ===== */}
+        <Navigation />
 
       {/* ===== CONTENIDO PRINCIPAL ===== */}
-      <main className="container mx-auto px-4 py-12 space-y-16">
+      <main className="pt-16">
         
         {/* === HERO BANNER === */}
-        <section className="text-center space-y-4 py-12">
-          <h2 className="text-5xl font-bold bg-linear-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
-            ASO-KARATE 
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Promoviendo la disciplina, el respeto y la excelencia en el arte del Karate
-          </p>
-          
-          {/* MÉTRICAS PRINCIPALES */}
-          <div className="flex justify-center gap-4 pt-4">
-            <Card className="w-32">
-              <CardContent className="pt-6 text-center">
-                <Users className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                <p className="text-2xl font-bold">{atletas?.length || 0}</p>
-                <p className="text-sm text-muted-foreground">Atletas</p>
-              </CardContent>
-            </Card>
-            <Card className="w-32">
-              <CardContent className="pt-6 text-center">
-                <Award className="h-8 w-8 mx-auto mb-2 text-green-600" />
-                <p className="text-2xl font-bold">{entrenadores?.length || 0}</p>
-                <p className="text-sm text-muted-foreground">Entrenadores</p>
-              </CardContent>
-            </Card>
-            <Card className="w-32">
-              <CardContent className="pt-6 text-center">
-                <Swords className="h-8 w-8 mx-auto mb-2 text-red-600" />
-                <p className="text-2xl font-bold">{combatesRecientes?.length || 0}</p>
-                <p className="text-sm text-muted-foreground">Combates</p>
-              </CardContent>
-            </Card>
-          </div>
+        <section id="inicio">
+          <HeroBanner 
+            atletasCount={atletas?.length || 0}
+            entrenadoresCount={entrenadores?.length || 0}
+            combatesCount={combatesRecientes?.length || 0}
+          />
         </section>
 
-        {/* === COMBATES EN VIVO (Condicional) === */}
-        {combatesEnVivo && combatesEnVivo.length > 0 && (
-          <section className="space-y-6">
-            <div className="flex items-center gap-3">
-              <Flame className="h-8 w-8 text-orange-600 animate-pulse" />
-              <div>
-                <h2 className="text-3xl font-bold">Combates en Vivo</h2>
-                <p className="text-muted-foreground">Batallas en curso ahora mismo</p>
-              </div>
-            </div>
+        <div className="container mx-auto px-4 space-y-24">
+         
 
-            <div className="grid gap-4">
-              {combatesEnVivo.map((combate) => (
-                <Card
-                  key={combate.id}
-                  className="border-2 border-orange-500 hover:shadow-xl transition-shadow animate-pulse"
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        {/* ATLETA 1 */}
-                        <div className="text-right flex-1">
-                          <p className="font-semibold text-xl">
-                            {combate.atleta1.nombre} {combate.atleta1.apellido}
-                          </p>
-                          <Badge variant="outline" className="mt-1">
-                            {combate.atleta1.cinturon}
-                          </Badge>
-                        </div>
-                        
-                        {/* MARCADOR CENTRAL */}
-                        <div className="text-center px-6">
-                          <Badge className="mb-2 bg-orange-600">
-                            <Clock className="h-3 w-3 mr-1" />
-                            EN VIVO
-                          </Badge>
-                          <div className="flex items-center gap-3">
-                            <span className="text-4xl font-bold text-red-600">{combate.puntos_atleta1}</span>
-                            <span className="text-3xl text-muted-foreground font-bold">VS</span>
-                            <span className="text-4xl font-bold text-blue-600">{combate.puntos_atleta2}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {combate.categoria} • {combate.duracion_minutos} min
-                          </p>
-                        </div>
-                        
-                        {/* ATLETA 2 */}
-                        <div className="text-left flex-1">
-                          <p className="font-semibold text-xl">
-                            {combate.atleta2.nombre} {combate.atleta2.apellido}
-                          </p>
-                          <Badge variant="outline" className="mt-1">
-                            {combate.atleta2.cinturon}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          {/* === COMBATES EN VIVO === */}
+          <section id="combates-vivo">
+            <CombatesEnVivo combates={combatesEnVivo || []} />
+          </section>
+
+          {/* === RESULTADOS RECIENTES === */}
+          <section id="resultados">
+            <ResultadosRecientes combates={combatesRecientes || []} />
+          </section>
+
+          {/* === PRÓXIMOS COMBATES === */}
+          <ProximosCombates combates={proximosCombates || []} />
+
+          {/* === MEJORES ENTRENADORES === */}
+          <section id="entrenadores">
+            <MejoresEntrenadores entrenadores={entrenadores || []} />
+          </section>
+
+          {/* === RANKINGS === */}
+          <section id="rankings">
+            <RankingsSection 
+              rankingAtletas={rankingAtletas || []}
+              rankingEquipos={rankingEquipos || []}
+            />
+          </section>
+
+          {/* === LISTA DE ATLETAS === */}
+          <section id="atletas">
+            <ListaAtletas atletas={atletas || []} />
+          </section>
+
+          {/* === TESTIMONIOS === */}
+          <section className="py-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Lo Que Dicen Nuestros Atletas</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Experiencias reales de quienes forman parte de nuestra comunidad
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-card p-6 rounded-lg border">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-primary font-bold">MR</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">María Rodríguez</h4>
+                    <p className="text-sm text-muted-foreground">Cinturón Negro 2° Dan</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground italic">
+                  "ASO-KARATE me ha dado la disciplina y confianza que necesitaba. Los entrenadores son excepcionales y el ambiente es muy profesional."
+                </p>
+              </div>
+              <div className="bg-card p-6 rounded-lg border">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-primary font-bold">CL</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Carlos López</h4>
+                    <p className="text-sm text-muted-foreground">Cinturón Negro 1° Dan</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground italic">
+                  "Gracias a ASO-KARATE he participado en competencias nacionales. La preparación técnica y mental es de primer nivel."
+                </p>
+              </div>
+              <div className="bg-card p-6 rounded-lg border">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-primary font-bold">AS</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">Ana Silva</h4>
+                    <p className="text-sm text-muted-foreground">Cinturón Marrón</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground italic">
+                  "El karate cambió mi vida. Aquí encontré no solo un deporte, sino una filosofía de vida y una segunda familia."
+                </p>
+              </div>
             </div>
           </section>
-        )}
 
-        {/* === RESULTADOS RECIENTES === */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Trophy className="h-8 w-8 text-yellow-600" />
-            <div>
-              <h2 className="text-3xl font-bold">Resultados Recientes</h2>
-              <p className="text-muted-foreground">Ganadores y perdedores de las últimas batallas</p>
+          {/* === NOTICIAS Y EVENTOS ===
+          <section className="py-16">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Últimas Noticias y Eventos</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Mantente al día con las últimas novedades de nuestra asociación
+              </p>
             </div>
-          </div>
-
-          <div className="grid gap-4">
-            {combatesRecientes && combatesRecientes.length > 0 ? (
-              combatesRecientes.map((combate) => {
-                // Determinar ganador para estilos condicionales
-                const ganadorEsAtleta1 = combate.ganador?.nombre === combate.atleta1.nombre
-                const ganadorEsAtleta2 = combate.ganador?.nombre === combate.atleta2.nombre
-
-                return (
-                  <Card key={combate.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 flex-1">
-                          {/* ATLETA 1 CON INDICADOR DE GANADOR */}
-                          <div className={`text-right flex-1 ${ganadorEsAtleta1 ? "opacity-100" : "opacity-50"}`}>
-                            <p className="font-semibold text-lg">
-                              {combate.atleta1.nombre} {combate.atleta1.apellido}
-                            </p>
-                            {ganadorEsAtleta1 && (
-                              <Badge className="mt-1 bg-green-600">
-                                <Trophy className="h-3 w-3 mr-1" />
-                                Ganador
-                              </Badge>
-                            )}
-                            {!ganadorEsAtleta1 && !ganadorEsAtleta2 && (
-                              <Badge variant="outline" className="mt-1">
-                                Empate
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {/* MARCADOR Y FECHA */}
-                          <div className="text-center px-6">
-                            <div className="flex items-center gap-3">
-                              <span className={`text-3xl font-bold ${ganadorEsAtleta1 ? "text-green-600" : ""}`}>
-                                {combate.puntos_atleta1}
-                              </span>
-                              <span className="text-2xl text-muted-foreground font-bold">-</span>
-                              <span className={`text-3xl font-bold ${ganadorEsAtleta2 ? "text-green-600" : ""}`}>
-                                {combate.puntos_atleta2}
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(combate.fecha_combate).toLocaleDateString()}
-                            </p>
-                          </div>
-                          
-                          {/* ATLETA 2 CON INDICADOR DE GANADOR */}
-                          <div className={`text-left flex-1 ${ganadorEsAtleta2 ? "opacity-100" : "opacity-50"}`}>
-                            <p className="font-semibold text-lg">
-                              {combate.atleta2.nombre} {combate.atleta2.apellido}
-                            </p>
-                            {ganadorEsAtleta2 && (
-                              <Badge className="mt-1 bg-green-600">
-                                <Trophy className="h-3 w-3 mr-1" />
-                                Ganador
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
-            ) : (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No hay resultados recientes
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
-
-        {/* === PRÓXIMOS COMBATES (Condicional) === */}
-        {proximosCombates && proximosCombates.length > 0 && (
-          <section className="space-y-6">
-            <div className="flex items-center gap-3">
-              <Clock className="h-8 w-8 text-blue-600" />
-              <div>
-                <h2 className="text-3xl font-bold">Próximos Combates</h2>
-                <p className="text-muted-foreground">Batallas programadas</p>
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {proximosCombates.map((combate) => (
-                <Card key={combate.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="space-y-3">
-                      {/* INFORMACIÓN DEL COMBATE */}
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary">{new Date(combate.fecha_combate).toLocaleDateString()}</Badge>
-                        <Badge variant="outline">{combate.categoria}</Badge>
-                      </div>
-                      
-                      {/* NOMBRES DE LOS ATLETAS */}
-                      <div className="text-center">
-                        <p className="font-semibold">
-                          {combate.atleta1.nombre} {combate.atleta1.apellido}
-                        </p>
-                        <p className="text-sm text-muted-foreground my-2">VS</p>
-                        <p className="font-semibold">
-                          {combate.atleta2.nombre} {combate.atleta2.apellido}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* === MEJORES ENTRENADORES === */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="h-8 w-8 text-green-600" />
-            <div>
-              <h2 className="text-3xl font-bold">Mejores Entrenadores</h2>
-              <p className="text-muted-foreground">Entrenadores destacados y sus especialidades</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {entrenadores && entrenadores.length > 0 ? (
-              entrenadores.slice(0, 6).map((entrenador) => (
-                <Card key={entrenador.id} className="hover:shadow-lg transition-shadow border-2">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>
-                          {entrenador.nombre} {entrenador.apellido}
-                        </CardTitle>
-                        <CardDescription>{entrenador.especialidad}</CardDescription>
-                      </div>
-                      <Badge className="bg-green-600">{entrenador.anos_experiencia} años</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4 text-green-600" />
-                        <span className="text-sm font-medium">Especialidad: {entrenador.especialidad}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm">{entrenador.equipos?.length || 0} equipo(s)</span>
-                      </div>
-                    </div>
-                    
-                    {/* LISTA DE EQUIPOS DEL ENTRENADOR */}
-                    {entrenador.equipos && entrenador.equipos.length > 0 && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Equipos:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {entrenador.equipos.map((equipo: any) => (
-                            <Badge key={equipo.id} variant="secondary">
-                              {equipo.nombre}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full">
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No hay entrenadores registrados
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
-
-        {/* === RANKINGS (Doble columna) === */}
-        <section className="grid lg:grid-cols-2 gap-8">
-          {/* RANKING DE ATLETAS */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Trophy className="h-6 w-6 text-yellow-600" />
-                <div>
-                  <CardTitle>Ranking de Atletas</CardTitle>
-                  <CardDescription>Top 10 atletas por puntos</CardDescription>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <article className="bg-card rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
+                <div className="h-48 bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <span className="text-6xl">🥋</span>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Atleta</TableHead>
-                    <TableHead className="text-center">V-D-E</TableHead>
-                    <TableHead className="text-right">Puntos</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rankingAtletas && rankingAtletas.length > 0 ? (
-                    rankingAtletas.map((ranking, index) => (
-                      <TableRow key={ranking.id}>
-                        <TableCell className="font-bold">
-                          {index + 1}
-                          {index === 0 && <Trophy className="inline ml-1 h-4 w-4 text-yellow-500" />}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">
-                              {ranking.atletas.nombre} {ranking.atletas.apellido}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{ranking.atletas.cinturon}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-mono text-sm">
-                          {ranking.victorias}-{ranking.derrotas}-{ranking.empates}
-                        </TableCell>
-                        <TableCell className="text-right font-bold">{ranking.puntos_totales}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No hay datos de ranking
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* RANKING DE EQUIPOS */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Users className="h-6 w-6 text-blue-600" />
-                <div>
-                  <CardTitle>Ranking de Equipos</CardTitle>
-                  <CardDescription>Top equipos por puntos</CardDescription>
+                <div className="p-6">
+                  <span className="text-xs text-primary font-semibold">TORNEO</span>
+                  <h3 className="font-bold text-lg mb-2 mt-1">Campeonato Regional 2024</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Se acerca el torneo más importante del año. Inscripciones abiertas para todas las categorías.
+                  </p>
+                  <span className="text-xs text-muted-foreground">15 de Marzo, 2024</span>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Equipo</TableHead>
-                    <TableHead className="text-center">V-D-E</TableHead>
-                    <TableHead className="text-right">Puntos</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rankingEquipos && rankingEquipos.length > 0 ? (
-                    rankingEquipos.map((ranking, index) => (
-                      <TableRow key={ranking.id}>
-                        <TableCell className="font-bold">
-                          {index + 1}
-                          {index === 0 && <Trophy className="inline ml-1 h-4 w-4 text-yellow-500" />}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium">{ranking.equipos.nombre}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {ranking.equipos.entrenadores
-                                ? `${ranking.equipos.entrenadores.nombre} ${ranking.equipos.entrenadores.apellido}`
-                                : "Sin entrenador"}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center font-mono text-sm">
-                          {ranking.victorias}-{ranking.derrotas}-{ranking.empates}
-                        </TableCell>
-                        <TableCell className="text-right font-bold">{ranking.puntos_totales}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No hay datos de ranking
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </section>
+              </article>
+              <article className="bg-card rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
+                <div className="h-48 bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <span className="text-6xl">🏆</span>
+                </div>
 
-        {/* === LISTA DE ATLETAS === */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Users className="h-8 w-8 text-blue-600" />
-            <div>
-              <h2 className="text-3xl font-bold">Nuestros Atletas</h2>
-              <p className="text-muted-foreground">Atletas activos de la asociación</p>
+                <div className="p-6">
+                  <span className="text-xs text-primary font-semibold">LOGRO</span>
+                  <h3 className="font-bold text-lg mb-2 mt-1">Nuevos Cinturones Negros</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Felicitamos a nuestros atletas que alcanzaron el grado de cinturón negro en el último examen.
+                  </p>
+                  <span className="text-xs text-muted-foreground">10 de Marzo, 2024</span>
+                </div>
+
+              </article>
+              <article className="bg-card rounded-lg overflow-hidden border hover:shadow-lg transition-shadow">
+                <div className="h-48 bg-linear-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <span className="text-6xl">📚</span>
+                </div>
+                <div className="p-6">
+                  <span className="text-xs text-primary font-semibold">SEMINARIO</span>
+                  <h3 className="font-bold text-lg mb-2 mt-1">Seminario de Kata Avanzado</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Masterclass con sensei internacional. Perfecciona tu técnica y conocimiento del kata tradicional.
+                  </p>
+                  <span className="text-xs text-muted-foreground">5 de Marzo, 2024</span>
+                </div>
+              </article>
             </div>
-          </div>
+          </section>*/}
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {atletas && atletas.length > 0 ? (
-              atletas.map((atleta) => (
-                <Card key={atleta.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {atleta.nombre} {atleta.apellido}
-                    </CardTitle>
-                    <CardDescription>{atleta.cinturon}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Categoría:</span>
-                      <span className="font-medium">{atleta.categoria_peso}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Equipo:</span>
-                      <span className="font-medium">{atleta.equipos?.nombre || "Sin equipo"}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Card className="col-span-full">
-                <CardContent className="pt-6 text-center text-muted-foreground">No hay atletas registrados</CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
+          {/* === PREGUNTAS FRECUENTES === */}
+          <FAQSection />
+
+          {/* ===  === */}
+         
+          {/*Aqui va el panel de los jueces  */}
+          <JuecesControlPanel />
+        </div>
       </main>
 
-      {/* ===== FOOTER ===== */}
-      <footer className="border-t bg-card mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center space-y-2">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-linear-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
-                <span className="text-lg text-white font-bold">空</span>
-              </div>
-              <p className="font-semibold">Asociación de Karate</p>
-            </div>
-            <p className="text-sm text-muted-foreground">Promoviendo la excelencia en artes marciales desde 2024</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+        {/* ===== FOOTER ===== */}
+        <Footer />
+      </div>
+    </>
   )
 }
 
