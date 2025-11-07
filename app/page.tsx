@@ -9,9 +9,8 @@ import RankingsSection from "@/components/home-frontend/RankingsSection"
 import ListaAtletas from "@/components/home-frontend/ListaAtletas"
 import Footer from "@/components/home-frontend/Footer"
 import FAQSection from "@/components/home-frontend/FAQSection"
-import JuecesControlPanel from "@/components/admin/JuecesControlPanel"
-import type { Metadata } from "next"
-import Script from "next/script"
+import JuecesRecientes from "@/components/home-frontend/JuecesRecientes"
+import ProximosTorneos from "@/components/home-frontend/ProximosTorneos"
 
 
 /**
@@ -42,8 +41,9 @@ export default async function HomePage() {
     { data: combatesEnVivo },      // Combates actualmente en curso
     { data: atletas },             // 12 atletas activos para mostrar
     { data: entrenadores },        // Todos los entrenadores activos
-    { data: proximosCombates },  
-      // Próximos 5 combates programados
+    { data: proximosCombates },    // Próximos 5 combates programados
+    { data: juecesRecientes },     // Últimos 5 jueces agregados
+    { data: proximosTorneos },     // Próximos torneos/combates
   ] = await Promise.all([
     // CONSULTA 1: Ranking de atletas (top 10)
     supabase
@@ -135,6 +135,27 @@ export default async function HomePage() {
       .eq("estado", "programado")
       .order("fecha_combate", { ascending: true })
       .limit(5),
+    
+    // CONSULTA 8: Jueces recientes
+    supabase
+      .from("jueces")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(5),
+    
+    // CONSULTA 9: Próximos torneos (combates programados para home)
+    supabase
+      .from("combates_individuales")
+      .select(
+        `
+        *,
+        atleta1:atletas!combates_individuales_atleta1_id_fkey(nombre, apellido),
+        atleta2:atletas!combates_individuales_atleta2_id_fkey(nombre, apellido)
+      `,
+      )
+      .eq("estado", "programado")
+      .order("fecha_combate", { ascending: true })
+      .limit(6),
   ])
 
   
@@ -180,7 +201,12 @@ export default async function HomePage() {
             <MejoresEntrenadores entrenadores={entrenadores || []} />
           </section>
 
-          {/* === RANKINGS === */}
+    
+ {/* === JUECES RECIENTES === */}
+          <section id="jueces-recientes">
+            <JuecesRecientes jueces={juecesRecientes || []} />
+          </section>
+      {/* === RANKINGS === */}
           <section id="rankings">
             <RankingsSection 
               rankingAtletas={rankingAtletas || []}
@@ -191,6 +217,14 @@ export default async function HomePage() {
           {/* === LISTA DE ATLETAS === */}
           <section id="atletas">
             <ListaAtletas atletas={atletas || []} />
+          </section>
+
+         
+          
+
+          {/* === PRÓXIMOS TORNEOS === */}
+          <section id="proximos-torneos">
+            <ProximosTorneos combates={proximosTorneos || []} />
           </section>
 
           {/* === TESTIMONIOS === */}
@@ -306,7 +340,7 @@ export default async function HomePage() {
           {/* ===  === */}
          
           {/*Aqui va el panel de los jueces  */}
-          <JuecesControlPanel />
+        
         </div>
       </main>
 
