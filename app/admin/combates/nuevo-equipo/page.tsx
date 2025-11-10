@@ -11,9 +11,10 @@ export default async function NuevoCombateEquipoPage() {
         `
         id, 
         nombre,
-        entrenadores(nombre, apellido)
+        entrenadores!inner(nombre, apellido)
       `,
       )
+      .limit(1, { foreignTable: 'entrenadores' })
       .order("nombre"),
     supabase.from("jueces").select("id, nombre, apellido").eq("activo", true).order("nombre"),
   ])

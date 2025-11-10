@@ -27,7 +27,7 @@ export default async function CombateIndividualPage({ params }: { params: Promis
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Gestionar Combate Individual</h1>
+        <h1 className="text-3xl font-bold">Gestionar Combate 1vs1</h1>
         <p className="text-muted-foreground">
           {combate.atleta1.nombre} {combate.atleta1.apellido} vs {combate.atleta2.nombre} {combate.atleta2.apellido}
         </p>
