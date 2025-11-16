@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Search } from "lucide-react"
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import {
@@ -32,6 +32,8 @@ type Juez = {
 
 export function JuecesTable({ jueces }: { jueces: Juez[] }) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 4
 
   const filteredJueces = jueces.filter(
     (juez) =>
@@ -39,6 +41,17 @@ export function JuecesTable({ jueces }: { jueces: Juez[] }) {
       juez.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       juez.cedula.includes(searchTerm),
   )
+
+  const totalPages = Math.ceil(filteredJueces.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentJueces = filteredJueces.slice(startIndex, endIndex)
+
+  // Reiniciar a la primera página cuando cambia la búsqueda
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   const handleDelete = async (id: string) => {
     try {
@@ -55,7 +68,7 @@ export function JuecesTable({ jueces }: { jueces: Juez[] }) {
         <Input
           placeholder="Buscar por nombre, apellido o cédula..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -73,14 +86,14 @@ export function JuecesTable({ jueces }: { jueces: Juez[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredJueces.length === 0 ? (
+            {currentJueces.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No se encontraron jueces
                 </TableCell>
               </TableRow>
             ) : (
-              filteredJueces.map((juez) => (
+              currentJueces.map((juez) => (
                 <TableRow key={juez.id}>
                   <TableCell className="font-medium">
                     {juez.nombre} {juez.apellido}
@@ -126,6 +139,37 @@ export function JuecesTable({ jueces }: { jueces: Juez[] }) {
           </TableBody>
         </Table>
       </div>
+
+      {filteredJueces.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, filteredJueces.length)} de {filteredJueces.length} jueces
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

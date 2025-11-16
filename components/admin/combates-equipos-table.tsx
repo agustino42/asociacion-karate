@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Trophy, Trash2 } from "lucide-react"
+import { Eye, Trophy, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +31,16 @@ type CombateEquipo = {
   estado: string
 }
 
-export function CombatesEquiposTable({ combates }: { combates: CombateEquipo[] }) {
+type Props = {
+  combates: CombateEquipo[]
+  currentPage: number
+  totalPages: number
+  totalItems: number
+}
+
+export function CombatesEquiposTable({ combates, currentPage, totalPages, totalItems }: Props) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const getEstadoBadge = (estado: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       programado: "secondary",
@@ -49,9 +59,22 @@ export function CombatesEquiposTable({ combates }: { combates: CombateEquipo[] }
     }
   }
 
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('pageEq', page.toString())
+    router.push(`?${params.toString()}`)
+  }
+
   return (
-    <div className="border rounded-lg">
-      <Table>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          Mostrando {combates.length} de {totalItems} combates por equipos
+        </p>
+      </div>
+      
+      <div className="border rounded-lg">
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Equipo 1</TableHead>
@@ -96,12 +119,21 @@ export function CombatesEquiposTable({ combates }: { combates: CombateEquipo[] }
                   <Badge variant={getEstadoBadge(combate.estado)}>{combate.estado.replace("_", " ")}</Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Link href={`/admin/combates/equipo/${combate.id}`}>
-                      <Button variant="outline" size="icon">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                  <div className="flex justify-end gap-2 items-center">
+                    {combate.estado === "finalizado" ? (
+                      <div className="text-sm text-muted-foreground mr-2">
+                        <div className="font-medium">Combate Terminado</div>
+                        <div className="text-xs">
+                          Ganador: {combate.equipo_ganador ? combate.equipo_ganador.nombre : "Empate"}
+                        </div>
+                      </div>
+                    ) : (
+                      <Link href={`/admin/combates/equipo/${combate.id}`}>
+                        <Button variant="outline" size="icon">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="outline" size="icon">
@@ -129,6 +161,45 @@ export function CombatesEquiposTable({ combates }: { combates: CombateEquipo[] }
           )}
         </TableBody>
       </Table>
+      </div>
+      
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => handlePageChange(page)}
+                className="w-8 h-8 p-0"
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

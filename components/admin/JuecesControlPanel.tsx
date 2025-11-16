@@ -216,7 +216,7 @@ function JuecesControlPanel() {
     <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url("/karate-bg.jpg")' }}>
       
       {/* ===== HEADER: TÍTULO DEL PANEL ===== */}
-      <div className="bg-gradient-to-r from-gray-900 to-black text-white py-4 px-8 border-b-4 border-blue-600">
+      <div className="bg-linear-to-r from-gray-900 to-black text-white py-4 px-8 border-b-4 border-blue-600">
         <div className="container mx-auto">
           <h1 className="text-3xl font-black tracking-widest text-center">PANEL DE CONTROL | JUEZ O ARBITRO</h1>
         </div>

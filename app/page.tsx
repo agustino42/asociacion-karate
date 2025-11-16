@@ -163,7 +163,6 @@ export default async function HomePage() {
     <>
       {/* EStructura Principal.. */}
       
-      
       <div className="min-h-screen bg-linear-to-b from-background to-muted/20">
         {/* ===== NAVIGATION ===== */}
         <Navigation />

@@ -6,10 +6,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CombatesIndividualesTable } from "@/components/admin/combates-individuales-table"
 import { CombatesEquiposTable } from "@/components/admin/combates-equipos-table"
 
-export default async function CombatesPage() {
-  const supabase = await getSupabaseServerClient()
+type SearchParams = {
+  pageInd?: string
+  pageEq?: string
+}
 
-  const [{ data: combatesIndividuales }, { data: combatesEquipos }] = await Promise.all([
+export default async function CombatesPage({ searchParams }: { searchParams: SearchParams }) {
+  const supabase = await getSupabaseServerClient()
+  
+  const pageInd = parseInt(searchParams.pageInd || '1')
+  const pageEq = parseInt(searchParams.pageEq || '1')
+  const itemsPerPage = 5
+  
+  const fromInd = (pageInd - 1) * itemsPerPage
+  const toInd = fromInd + itemsPerPage - 1
+  const fromEq = (pageEq - 1) * itemsPerPage
+  const toEq = fromEq + itemsPerPage - 1
+
+  const [{ data: combatesIndividuales, count: countInd }, { data: combatesEquipos, count: countEq }] = await Promise.all([
     supabase
       .from("combates_individuales")
       .select(
@@ -20,8 +34,10 @@ export default async function CombatesPage() {
         ganador:atletas!combates_individuales_ganador_id_fkey(id, nombre, apellido),
         juez:jueces(id, nombre, apellido)
       `,
+        { count: 'exact' }
       )
-      .order("fecha_combate", { ascending: false }),
+      .order("fecha_combate", { ascending: false })
+      .range(fromInd, toInd),
     supabase
       .from("combates_equipos")
       .select(
@@ -32,9 +48,14 @@ export default async function CombatesPage() {
         equipo_ganador:equipos!combates_equipos_equipo_ganador_id_fkey(id, nombre),
         juez:jueces(id, nombre, apellido)
       `,
+        { count: 'exact' }
       )
-      .order("fecha_combate", { ascending: false }),
+      .order("fecha_combate", { ascending: false })
+      .range(fromEq, toEq),
   ])
+  
+  const totalPagesInd = Math.ceil((countInd || 0) / itemsPerPage)
+  const totalPagesEq = Math.ceil((countEq || 0) / itemsPerPage)
 
   return (
     <div className="space-y-6">
@@ -74,11 +95,21 @@ export default async function CombatesPage() {
         </div>
 
         <TabsContent value="individuales">
-          <CombatesIndividualesTable combates={combatesIndividuales || []} />
+          <CombatesIndividualesTable 
+            combates={combatesIndividuales || []} 
+            currentPage={pageInd}
+            totalPages={totalPagesInd}
+            totalItems={countInd || 0}
+          />
         </TabsContent>
 
         <TabsContent value="equipos">
-          <CombatesEquiposTable combates={combatesEquipos || []} />
+          <CombatesEquiposTable 
+            combates={combatesEquipos || []} 
+            currentPage={pageEq}
+            totalPages={totalPagesEq}
+            totalItems={countEq || 0}
+          />
         </TabsContent>
       </Tabs>
     </div>
