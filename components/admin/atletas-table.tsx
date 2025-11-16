@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Search } from "lucide-react"
+import { Edit, Trash2, Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import {
@@ -59,6 +59,8 @@ type Atleta = {
 export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
   // Estado para el término de búsqueda
   const [searchTerm, setSearchTerm] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 4
 
   /**
    * Filtra los atletas basándose en el término de búsqueda
@@ -70,6 +72,17 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
       atleta.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
       atleta.cedula.includes(searchTerm),
   )
+
+  const totalPages = Math.ceil(filteredAtletas.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentAtletas = filteredAtletas.slice(startIndex, endIndex)
+
+  // Reset to first page when search changes
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   /**
    * Maneja la eliminación de un atleta
@@ -93,7 +106,7 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
         <Input
           placeholder="Buscar por nombre, apellido o cédula..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -114,7 +127,7 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
           </TableHeader>
           <TableBody>
             {/* ESTADO VACÍO */}
-            {filteredAtletas.length === 0 ? (
+            {currentAtletas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-muted-foreground">
                   {atletas.length === 0 
@@ -125,7 +138,7 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
               </TableRow>
             ) : (
               /* LISTA DE ATLETAS FILTRADOS */
-              filteredAtletas.map((atleta) => (
+              currentAtletas.map((atleta) => (
                 <TableRow key={atleta.id}>
                   {/* INFORMACIÓN PERSONAL */}
                   <TableCell className="font-medium">
@@ -186,6 +199,37 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
           </TableBody>
         </Table>
       </div>
+
+      {filteredAtletas.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, filteredAtletas.length)} de {filteredAtletas.length} atletas
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
