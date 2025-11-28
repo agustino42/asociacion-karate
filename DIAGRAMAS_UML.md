@@ -7,103 +7,390 @@ Sistema web de gestión para asociación de karate desarrollado con Next.js 15, 
 
 ## 1. Diagrama de Clases
 
-### Entidades Principales
+### Entidades Principales del Dominio
 
-# Diagrama de Clases - Sistema de Gestión de Karate
+```mermaid
+classDiagram
+    class Atleta {
+        -UUID id
+        -string nombre
+        -string apellido
+        -string cedula
+        -Date fecha_nacimiento
+        -decimal peso
+        -string categoria_peso
+        -string cinturon
+        -string foto_url
+        -UUID equipo_id
+        -boolean activo
+        -DateTime created_at
+        -DateTime updated_at
+        +crearAtleta() Atleta
+        +actualizarAtleta(datos) boolean
+        +eliminarAtleta() boolean
+        +obtenerAtletas() Atleta[]
+        +obtenerPorId(id) Atleta
+        +calcularEdad() int
+        +validarPeso() boolean
+    }
 
-## Entidades Principales
+    class Entrenador {
+        -UUID id
+        -string nombre
+        -string apellido
+        -string cedula
+        -int anos_experiencia
+        -string especialidad
+        -string telefono
+        -string email
+        -string foto_url
+        -boolean activo
+        -DateTime created_at
+        -DateTime updated_at
+        +crearEntrenador() Entrenador
+        +actualizarEntrenador(datos) boolean
+        +eliminarEntrenador() boolean
+        +obtenerEntrenadores() Entrenador[]
+        +validarExperiencia() boolean
+    }
 
+    class Equipo {
+        -UUID id
+        -string nombre
+        -UUID entrenador_id
+        -string descripcion
+        -DateTime created_at
+        -DateTime updated_at
+        +crearEquipo() Equipo
+        +actualizarEquipo(datos) boolean
+        +obtenerEquipos() Equipo[]
+        +obtenerAtletas() Atleta[]
+        +contarMiembros() int
+    }
+
+    class Juez {
+        -UUID id
+        -string nombre
+        -string apellido
+        -string cedula
+        -string nivel_certificacion
+        -int anos_experiencia
+        -string telefono
+        -string email
+        -boolean activo
+        -DateTime created_at
+        -DateTime updated_at
+        +crearJuez() Juez
+        +actualizarJuez(datos) boolean
+        +eliminarJuez() boolean
+        +validarCertificacion() boolean
+        +puedeArbitrar(combate) boolean
+    }
+
+    class CombateIndividual {
+        -UUID id
+        -UUID atleta1_id
+        -UUID atleta2_id
+        -UUID juez_id
+        -string estado
+        -int puntos_atleta1
+        -int puntos_atleta2
+        -UUID ganador_id
+        -string tipo_combate
+        -DateTime fecha_inicio
+        -DateTime fecha_fin
+        -DateTime created_at
+        +crearCombate() CombateIndividual
+        +iniciarCombate() boolean
+        +simularRonda() void
+        +actualizarPuntos(atleta, puntos) void
+        +finalizarCombate() void
+        +determinarGanador() UUID
+    }
+
+    class CombateEquipo {
+        -UUID id
+        -UUID equipo1_id
+        -UUID equipo2_id
+        -UUID juez_id
+        -string estado
+        -int puntos_equipo1
+        -int puntos_equipo2
+        -UUID ganador_id
+        -DateTime fecha_inicio
+        -DateTime fecha_fin
+        -DateTime created_at
+        +crearCombateEquipo() CombateEquipo
+        +iniciarCombate() boolean
+        +simularCombate() void
+        +calcularPuntosEquipo() int
+    }
+
+    %% Relaciones
+    Entrenador ||--o{ Equipo : "1..* entrena"
+    Equipo ||--o{ Atleta : "0..* tiene"
+    Atleta ||--o{ CombateIndividual : "2 participa como atleta1/atleta2"
+    Juez ||--o{ CombateIndividual : "1..* arbitra"
+    Equipo ||--o{ CombateEquipo : "2 compite como equipo1/equipo2"
+    Juez ||--o{ CombateEquipo : "1..* arbitra"
+    CombateIndividual ||--|| Atleta : "ganador"
+    CombateEquipo ||--|| Equipo : "ganador"
 ```
 
-### Descripción de Componentes
+### Capa de Acceso a Datos y Servicios
 
-#### Componentes de Layout:
-- **AdminLayout**: Layout principal que envuelve todas las páginas administrativas
-- **Header**: Barra superior con título, usuario y controles
-- **Sidebar**: Menú lateral de navegación
-- **ThemeProvider**: Proveedor de contexto para el tema claro/oscuro
+```mermaid
+classDiagram
+    class SupabaseClient {
+        -string url
+        -string anonKey
+        -PostgrestClient rest
+        -RealtimeClient realtime
+        +createBrowserClient() SupabaseClient
+        +createServerClient() SupabaseClient
+        +from(table) PostgrestQueryBuilder
+        +auth() GoTrueClient
+        +storage() StorageClient
+    }
 
-#### Componentes de Formularios:
-- **AtletaForm**: Formulario para crear/editar atletas
-- **EntrenadorForm**: Formulario para gestionar entrenadores
-- **JuezForm**: Formulario para administrar jueces
-- **EquipoForm**: Formulario para crear equipos
-- **CombateForm**: Formulario para configurar combates
+    class AtletaService {
+        -SupabaseClient client
+        +obtenerTodos() Promise~Atleta[]~
+        +obtenerPorId(id) Promise~Atleta~
+        +crear(atleta) Promise~Atleta~
+        +actualizar(id, datos) Promise~boolean~
+        +eliminar(id) Promise~boolean~
+        +buscarPorCategoria(categoria) Promise~Atleta[]~
+    }
 
-#### Componentes de Tablas:
-- **AtletasTable**: Lista de atletas con acciones CRUD
-- **EntrenadoresTable**: Tabla de entrenadores
-- **JuecesTable**: Lista de jueces
-- **EquiposTable**: Tabla de equipos
-- **CombatesTable**: Lista de combates con simulación
+    class CombateService {
+        -SupabaseClient client
+        +crearCombateIndividual(datos) Promise~CombateIndividual~
+        +simularCombate(id) Promise~void~
+        +obtenerCombatesActivos() Promise~CombateIndividual[]~
+        +finalizarCombate(id) Promise~boolean~
+    }
 
-#### Componentes de Simulación:
-- **CombateSimulador**: Componente principal para simular combates en tiempo real
+    class RealtimeService {
+        -SupabaseClient client
+        -RealtimeChannel channel
+        +suscribirCombates(callback) void
+        +enviarActualizacion(evento) void
+        +desconectar() void
+    }
 
-#### Componentes Base:
-- **Button**: Botón reutilizable con variantes
-- **Input**: Campo de entrada de texto
-- **Select**: Selector dropdown
-- **Modal**: Ventana modal
-- **LoadingSpinner**: Indicador de carga
+    SupabaseClient ||--o{ AtletaService : "utiliza"
+    SupabaseClient ||--o{ CombateService : "utiliza"
+    SupabaseClient ||--o{ RealtimeService : "utiliza"
+```
+
+### Componentes de Interfaz de Usuario
+
+```mermaid
+classDiagram
+    class AdminLayout {
+        -ReactNode children
+        -string currentPath
+        +render() JSX.Element
+        +handleNavigation(path) void
+    }
+
+    class AtletaForm {
+        -AtletaFormData formData
+        -FormErrors errors
+        -boolean isSubmitting
+        +onSubmit(data) Promise~void~
+        +validate(field) boolean
+        +resetForm() void
+        +render() JSX.Element
+    }
+
+    class AtletasTable {
+        -Atleta[] atletas
+        -string sortBy
+        -string filterBy
+        +onEdit(atleta) void
+        +onDelete(id) void
+        +onSort(column) void
+        +onFilter(criteria) void
+        +render() JSX.Element
+    }
+
+    class CombateSimulador {
+        -CombateIndividual combate
+        -boolean isSimulating
+        -number currentRound
+        +iniciarSimulacion() void
+        +simularRonda() void
+        +pausarSimulacion() void
+        +finalizarCombate() void
+        +render() JSX.Element
+    }
+
+    class ThemeProvider {
+        -string theme
+        -ThemeContext context
+        +toggleTheme() void
+        +setTheme(theme) void
+        +render() JSX.Element
+    }
+
+    ThemeProvider ||--o{ AdminLayout : "envuelve"
+    AdminLayout ||--o{ AtletaForm : "contiene"
+    AdminLayout ||--o{ AtletasTable : "contiene"
+    AdminLayout ||--o{ CombateSimulador : "contiene"
+```
+
+---
+
 ## 2. Diagrama de Actividades
 
 ### Proceso de Gestión de Combate Individual
 
 ```mermaid
 flowchart TD
-    A[Inicio] --> B[Acceder a Admin Panel]
-    B --> C[Seleccionar Combates]
-    C --> D[Elegir Nuevo Combate Individual]
-    D --> E[Seleccionar Atleta 1]
-    E --> F[Seleccionar Atleta 2]
-    F --> G[Asignar Juez]
-    G --> H[Configurar Tipo de Combate]
-    H --> I[Crear Combate]
-    I --> J{Combate Creado?}
+    A([Inicio]) --> B[Acceder a Admin Panel]
+    B --> C[Navegar a Combates]
+    C --> D[Seleccionar 'Nuevo Combate Individual']
+    D --> E[Cargar Lista de Atletas Activos]
+    E --> F[Seleccionar Atleta 1]
+    F --> G[Filtrar Atletas Compatibles]
+    G --> H[Seleccionar Atleta 2]
+    H --> I[Validar Categorías de Peso]
+    I --> J{¿Categorías Compatibles?}
     
-    J -->|Sí| K[Iniciar Simulación]
-    J -->|No| L[Mostrar Error]
-    L --> D
+    J -->|No| K[Mostrar Advertencia]
+    K --> L[¿Continuar Anyway?]
+    L -->|No| H
+    L -->|Sí| M[Cargar Lista de Jueces]
     
-    K --> M[Simular Rondas]
-    M --> N[Actualizar Puntos en Tiempo Real]
-    N --> O{Combate Terminado?}
+    J -->|Sí| M
+    M --> N[Seleccionar Juez Disponible]
+    N --> O[Configurar Tipo de Combate]
+    O --> P[Validar Configuración]
+    P --> Q{¿Datos Válidos?}
     
-    O -->|No| P[Continuar Simulación]
-    P --> M
-    O -->|Sí| Q[Determinar Ganador]
-    Q --> R[Actualizar Rankings]
-    R --> S[Guardar Resultado]
-    S --> T[Notificar Finalización]
-    T --> U[Fin]
+    Q -->|No| R[Mostrar Errores de Validación]
+    R --> D
+    
+    Q -->|Sí| S[Crear Combate en BD]
+    S --> T{¿Combate Creado?}
+    
+    T -->|No| U[Mostrar Error de BD]
+    U --> D
+    
+    T -->|Sí| V[Inicializar Simulador]
+    V --> W[Mostrar Panel de Control]
+    W --> X[Iniciar Simulación]
+    X --> Y[Simular Ronda]
+    Y --> Z[Generar Puntos Aleatorios]
+    Z --> AA[Actualizar Puntos en Tiempo Real]
+    AA --> BB[Notificar via WebSocket]
+    BB --> CC{¿Condición de Victoria?}
+    
+    CC -->|No| DD{¿Continuar Simulación?}
+    DD -->|Sí| Y
+    DD -->|No| EE[Pausar Combate]
+    EE --> FF([Fin Temporal])
+    
+    CC -->|Sí| GG[Determinar Ganador]
+    GG --> HH[Actualizar Estado a 'Finalizado']
+    HH --> II[Guardar Resultado Final]
+    II --> JJ[Actualizar Estadísticas]
+    JJ --> KK[Enviar Notificación]
+    KK --> LL[Mostrar Resultado]
+    LL --> MM([Fin])
 ```
 
 ### Proceso de Registro de Atleta
 
 ```mermaid
 flowchart TD
-    A[Inicio] --> B[Acceder a Gestión de Atletas]
-    B --> C[Seleccionar Nuevo Atleta]
-    C --> D[Llenar Formulario]
-    D --> E[Ingresar Datos Personales]
-    E --> F[Seleccionar Categoría de Peso]
-    F --> G[Asignar Cinturón]
-    G --> H[Asignar Equipo Opcional]
-    H --> I[Validar Formulario]
-    I --> J{Datos Válidos?}
+    A([Inicio]) --> B[Acceder a Gestión de Atletas]
+    B --> C[Hacer Click en 'Nuevo Atleta']
+    C --> D[Cargar Formulario Vacío]
+    D --> E[Ingresar Nombre y Apellido]
+    E --> F[Ingresar Cédula]
+    F --> G[Validar Cédula Única]
+    G --> H{¿Cédula Disponible?}
     
-    J -->|No| K[Mostrar Errores]
-    K --> D
-    J -->|Sí| L[Enviar a Supabase]
-    L --> M{Guardado Exitoso?}
+    H -->|No| I[Mostrar Error: Cédula Existente]
+    I --> F
     
-    M -->|No| N[Mostrar Error de BD]
-    N --> D
-    M -->|Sí| O[Revalidar Cache]
-    O --> P[Redireccionar a Lista]
-    P --> Q[Mostrar Confirmación]
-    Q --> R[Fin]
+    H -->|Sí| J[Ingresar Fecha de Nacimiento]
+    J --> K[Calcular Edad Automáticamente]
+    K --> L[Ingresar Peso Actual]
+    L --> M[Determinar Categoría de Peso]
+    M --> N[Seleccionar Cinturón]
+    N --> O[Cargar Lista de Equipos]
+    O --> P[Seleccionar Equipo (Opcional)]
+    P --> Q[Subir Foto (Opcional)]
+    Q --> R[Validar Todos los Campos]
+    R --> S{¿Formulario Válido?}
+    
+    S -->|No| T[Mostrar Errores Específicos]
+    T --> U[Resaltar Campos con Error]
+    U --> V[Enfocar Primer Campo Inválido]
+    V --> E
+    
+    S -->|Sí| W[Mostrar Confirmación]
+    W --> X[Enviar Datos a Supabase]
+    X --> Y{¿Guardado Exitoso?}
+    
+    Y -->|No| Z[Mostrar Error de Conexión]
+    Z --> AA[Opción de Reintentar]
+    AA --> X
+    
+    Y -->|Sí| BB[Revalidar Cache de Atletas]
+    BB --> CC[Mostrar Mensaje de Éxito]
+    CC --> DD[Redireccionar a Lista]
+    DD --> EE[Resaltar Nuevo Atleta]
+    EE --> FF([Fin])
+```
+
+### Proceso de Simulación de Combate en Tiempo Real
+
+```mermaid
+flowchart TD
+    A([Combate Iniciado]) --> B[Establecer Conexión WebSocket]
+    B --> C[Inicializar Variables de Combate]
+    C --> D[Ronda = 1, Puntos = 0]
+    D --> E[Mostrar Estado Inicial]
+    E --> F[Generar Evento Aleatorio]
+    F --> G{Tipo de Evento}
+    
+    G -->|Golpe Exitoso| H[Calcular Puntos por Técnica]
+    G -->|Bloqueo| I[Sin Puntos, Cambiar Turno]
+    G -->|Técnica Especial| J[Puntos Dobles]
+    
+    H --> K[Actualizar Puntos Atleta]
+    J --> K
+    I --> L[Continuar Simulación]
+    
+    K --> M[Enviar Update via WebSocket]
+    M --> N[Actualizar UI en Tiempo Real]
+    N --> O[Reproducir Sonido/Animación]
+    O --> P{¿Diferencia >= 8 puntos?}
+    
+    P -->|Sí| Q[Victoria por Diferencia]
+    P -->|No| R{¿Tiempo Agotado?}
+    
+    R -->|No| S[Esperar 1-2 segundos]
+    S --> F
+    
+    R -->|Sí| T[Comparar Puntos Finales]
+    T --> U{¿Empate?}
+    
+    U -->|Sí| V[Ronda Extra]
+    V --> F
+    
+    U -->|No| W[Determinar Ganador por Puntos]
+    Q --> X[Finalizar Combate]
+    W --> X
+    
+    X --> Y[Guardar Resultado]
+    Y --> Z[Cerrar WebSocket]
+    Z --> AA([Fin])
 ```
 
 ---
@@ -111,76 +398,162 @@ flowchart TD
 ## 3. Diagrama de Casos de Uso
 
 ```mermaid
-flowchart LR
-    subgraph Sistema["Sistema de Gestión de Karate"]
-        subgraph Principales["Casos de Uso Principales"]
-            UC1[Gestionar Atletas]
-            UC2[Gestionar Entrenadores]
-            UC3[Gestionar Jueces]
-            UC4[Gestionar Equipos]
-            UC5[Crear Combates Individuales]
-            UC6[Crear Combates por Equipos]
-            UC7[Simular Combates]
-            UC8[Ver Rankings]
-            UC9[Administrar Sistema]
-            UC10[Ver Combates en Vivo]
+flowchart TB
+    %% Actores
+    Admin([👤 Administrador])
+    Viewer([👁️ Espectador])
+    System([🤖 Sistema])
+    
+    %% Sistema Principal
+    subgraph SistemaKarate["🥋 Sistema de Gestión de Karate"]
+        
+        %% Casos de Uso Principales
+        subgraph GestionEntidades["📋 Gestión de Entidades"]
+            UC1((Gestionar<br/>Atletas))
+            UC2((Gestionar<br/>Entrenadores))
+            UC3((Gestionar<br/>Jueces))
+            UC4((Gestionar<br/>Equipos))
         end
         
-        subgraph Secundarios["Casos de Uso Secundarios"]
-            UC11[Autenticación]
-            UC12[Cambiar Tema]
-            UC13[Exportar Datos]
-            UC14[Limpiar Combates]
-            UC15[Sortear Combates]
+        subgraph GestionCombates["⚔️ Gestión de Combates"]
+            UC5((Crear Combate<br/>Individual))
+            UC6((Crear Combate<br/>por Equipos))
+            UC7((Simular<br/>Combates))
+            UC8((Controlar<br/>Simulación))
+        end
+        
+        subgraph Visualizacion["📊 Visualización"]
+            UC9((Ver Rankings<br/>y Estadísticas))
+            UC10((Ver Combates<br/>en Vivo))
+            UC11((Generar<br/>Reportes))
+        end
+        
+        subgraph Administracion["⚙️ Administración"]
+            UC12((Administrar<br/>Sistema))
+            UC13((Gestionar<br/>Configuración))
+            UC14((Limpiar<br/>Datos))
+        end
+        
+        subgraph Secundarios["🔧 Funciones Secundarias"]
+            UC15((Autenticación))
+            UC16((Cambiar Tema))
+            UC17((Exportar Datos))
+            UC18((Sortear<br/>Combates))
+            UC19((Backup<br/>Automático))
         end
     end
     
-    subgraph Actores["Actores"]
-        Admin[Administrador]
-        Viewer[Espectador]
-        System[Sistema]
-    end
+    %% Relaciones Administrador
+    Admin -.-> UC1
+    Admin -.-> UC2
+    Admin -.-> UC3
+    Admin -.-> UC4
+    Admin -.-> UC5
+    Admin -.-> UC6
+    Admin -.-> UC7
+    Admin -.-> UC8
+    Admin -.-> UC11
+    Admin -.-> UC12
+    Admin -.-> UC13
+    Admin -.-> UC14
+    Admin -.-> UC15
+    Admin -.-> UC18
     
-    Admin --> UC1
-    Admin --> UC2
-    Admin --> UC3
-    Admin --> UC4
-    Admin --> UC5
-    Admin --> UC6
-    Admin --> UC7
-    Admin --> UC9
-    Admin --> UC11
-    Admin --> UC14
-    Admin --> UC15
+    %% Relaciones Espectador
+    Viewer -.-> UC9
+    Viewer -.-> UC10
+    Viewer -.-> UC16
     
-    Viewer --> UC8
-    Viewer --> UC10
-    Viewer --> UC12
+    %% Relaciones Sistema
+    System -.-> UC7
+    System -.-> UC17
+    System -.-> UC19
     
-    System --> UC7
-    System --> UC13
-    
-    UC5 -.->|extends| UC7
-    UC6 -.->|extends| UC7
-    UC9 -.->|includes| UC11
-    UC1 -.->|includes| UC11
-    UC2 -.->|includes| UC11
-    UC3 -.->|includes| UC11
+    %% Relaciones entre Casos de Uso
+    UC5 -.->|<<extends>>| UC7
+    UC6 -.->|<<extends>>| UC7
+    UC7 -.->|<<includes>>| UC8
+    UC12 -.->|<<includes>>| UC15
+    UC1 -.->|<<includes>>| UC15
+    UC2 -.->|<<includes>>| UC15
+    UC3 -.->|<<includes>>| UC15
+    UC4 -.->|<<includes>>| UC15
+    UC11 -.->|<<includes>>| UC17
+    UC18 -.->|<<includes>>| UC5
+    UC18 -.->|<<includes>>| UC6
 ```
 
-### Descripción de Casos de Uso
+### Especificación Detallada de Casos de Uso
 
-#### Casos de Uso Principales:
-- **UC1 - Gestionar Atletas**: CRUD completo de atletas con validaciones
-- **UC2 - Gestionar Entrenadores**: Administración de entrenadores y especialidades
-- **UC3 - Gestionar Jueces**: Control de jueces y certificaciones
-- **UC4 - Gestionar Equipos**: Creación y administración de equipos
-- **UC5 - Crear Combates Individuales**: Configuración de combates 1v1
-- **UC6 - Crear Combates por Equipos**: Configuración de combates grupales
-- **UC7 - Simular Combates**: Simulación automática en tiempo real
-- **UC8 - Ver Rankings**: Visualización de clasificaciones y estadísticas
-- **UC9 - Administrar Sistema**: Panel de control administrativo
-- **UC10 - Ver Combates en Vivo**: Seguimiento de combates activos
+#### 🏆 Casos de Uso Principales
+
+**UC1 - Gestionar Atletas**
+- **Actor Principal**: Administrador
+- **Descripción**: CRUD completo de atletas con validaciones de datos
+- **Precondiciones**: Usuario autenticado como administrador
+- **Flujo Principal**: Crear, leer, actualizar y eliminar atletas
+- **Postcondiciones**: Datos de atletas actualizados en la base de datos
+
+**UC2 - Gestionar Entrenadores**
+- **Actor Principal**: Administrador
+- **Descripción**: Administración de entrenadores y sus especialidades
+- **Incluye**: Validación de experiencia y certificaciones
+
+**UC3 - Gestionar Jueces**
+- **Actor Principal**: Administrador
+- **Descripción**: Control de jueces y sus niveles de certificación
+- **Incluye**: Validación de competencias para arbitrar
+
+**UC4 - Gestionar Equipos**
+- **Actor Principal**: Administrador
+- **Descripción**: Creación y administración de equipos
+- **Incluye**: Asignación de entrenadores y atletas
+
+**UC5 - Crear Combate Individual**
+- **Actor Principal**: Administrador
+- **Descripción**: Configuración de combates 1 vs 1
+- **Extiende**: UC7 (Simular Combates)
+- **Incluye**: Validación de categorías de peso
+
+**UC6 - Crear Combate por Equipos**
+- **Actor Principal**: Administrador
+- **Descripción**: Configuración de combates grupales
+- **Extiende**: UC7 (Simular Combates)
+
+**UC7 - Simular Combates**
+- **Actor Principal**: Sistema/Administrador
+- **Descripción**: Simulación automática en tiempo real
+- **Incluye**: UC8 (Controlar Simulación)
+- **Postcondiciones**: Resultado guardado y notificado
+
+#### 📊 Casos de Uso de Visualización
+
+**UC9 - Ver Rankings y Estadísticas**
+- **Actor Principal**: Espectador/Administrador
+- **Descripción**: Visualización de clasificaciones y métricas
+- **Precondiciones**: Datos de combates disponibles
+
+**UC10 - Ver Combates en Vivo**
+- **Actor Principal**: Espectador
+- **Descripción**: Seguimiento de combates activos en tiempo real
+- **Tecnología**: WebSockets para actualizaciones en vivo
+
+#### ⚙️ Casos de Uso Administrativos
+
+**UC12 - Administrar Sistema**
+- **Actor Principal**: Administrador
+- **Descripción**: Panel de control administrativo general
+- **Incluye**: UC15 (Autenticación)
+
+**UC15 - Autenticación**
+- **Actor Principal**: Todos los usuarios
+- **Descripción**: Proceso de login y autorización
+- **Tecnología**: Supabase Auth
+
+**UC18 - Sortear Combates**
+- **Actor Principal**: Administrador
+- **Descripción**: Generación automática de enfrentamientos
+- **Incluye**: UC5 y UC6 para crear los combates sorteados
 
 ---
 
@@ -188,43 +561,145 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph Cliente["Cliente"]
-        Browser[Navegador Web]
-        Mobile[Dispositivo Móvil]
+    %% Capa de Cliente
+    subgraph ClientLayer["🖥️ Capa de Cliente"]
+        Browser["🌐 Navegador Web<br/>(Chrome, Firefox, Safari)"]
+        Mobile["📱 Dispositivo Móvil<br/>(iOS, Android)"]
+        Tablet["📱 Tablet<br/>(iPad, Android)"]
     end
     
-    subgraph CDN["CDN/Edge"]
-        Vercel[Vercel Edge Network]
-        Static[Archivos Estáticos]
+    %% Capa de Red/CDN
+    subgraph NetworkLayer["🌍 Capa de Red"]
+        DNS["🔗 DNS Provider<br/>(Cloudflare/Vercel)"]
+        SSL["🔒 SSL Certificate<br/>(Let's Encrypt)"]
+        CDN["⚡ Vercel Edge Network<br/>(Global CDN)"]
     end
     
-    subgraph Servidor["Servidor de Aplicación"]
-        NextJS[Next.js 15 Server]
-        SSR[Server-Side Rendering]
-        API[API Routes]
-        Middleware[Middleware Auth]
+    %% Capa de Aplicación
+    subgraph AppLayer["🚀 Capa de Aplicación"]
+        subgraph VercelInfra["Vercel Infrastructure"]
+            NextJS["⚛️ Next.js 15 Server<br/>(App Router)"]
+            SSR["🔄 Server-Side Rendering<br/>(React 18)"]
+            API["🔌 API Routes<br/>(REST Endpoints)"]
+            Middleware["🛡️ Auth Middleware<br/>(JWT Validation)"]
+            Static["📦 Static Assets<br/>(CSS, JS, Images)"]
+        end
     end
     
-    subgraph BaseDatos["Base de Datos"]
-        Supabase[Supabase PostgreSQL]
-        RLS[Row Level Security]
-        Realtime[Realtime Subscriptions]
+    %% Capa de Datos
+    subgraph DataLayer["💾 Capa de Datos"]
+        subgraph SupabaseInfra["Supabase Infrastructure"]
+            PostgreSQL["🐘 PostgreSQL Database<br/>(Primary Storage)"]
+            RLS["🔐 Row Level Security<br/>(Data Protection)"]
+            Realtime["⚡ Realtime Engine<br/>(WebSocket Server)"]
+            Storage["📁 Object Storage<br/>(File Management)"]
+        end
     end
     
-    subgraph Servicios["Servicios Externos"]
-        Analytics[Vercel Analytics]
-        Auth[Supabase Auth]
-        Storage[Supabase Storage]
+    %% Servicios Externos
+    subgraph ExternalServices["🔧 Servicios Externos"]
+        Auth["🔑 Supabase Auth<br/>(OAuth, JWT)"]
+        Analytics["📊 Vercel Analytics<br/>(Performance Metrics)"]
+        Monitoring["📈 Vercel Speed Insights<br/>(Core Web Vitals)"]
     end
     
-    subgraph Infraestructura["Infraestructura"]
-        DNS[DNS Provider]
-        SSL[SSL Certificate]
-        CDN_Global[Global CDN]
-    end
+    %% Conexiones Cliente -> Red
+    Browser -.->|HTTPS Request| DNS
+    Mobile -.->|HTTPS Request| DNS
+    Tablet -.->|HTTPS Request| DNS
     
-    Browser --> DNS
-    Mobile --> DNS
+    %% Conexiones Red -> Aplicación
+    DNS -.->|Domain Resolution| SSL
+    SSL -.->|Secure Connection| CDN
+    CDN -.->|Cache Miss| NextJS
+    CDN -.->|Static Assets| Static
+    
+    %% Conexiones Aplicación Interna
+    NextJS -.->|SSR/SSG| SSR
+    NextJS -.->|API Calls| API
+    API -.->|Auth Check| Middleware
+    Middleware -.->|JWT Validation| Auth
+    
+    %% Conexiones Aplicación -> Datos
+    API -.->|SQL Queries| PostgreSQL
+    API -.->|Real-time Updates| Realtime
+    NextJS -.->|File Upload| Storage
+    PostgreSQL -.->|Security Rules| RLS
+    
+    %% Conexiones Servicios Externos
+    NextJS -.->|User Analytics| Analytics
+    NextJS -.->|Performance Data| Monitoring
+    Middleware -.->|Authentication| Auth
+    
+    %% WebSocket para tiempo real
+    Browser -.->|WebSocket| Realtime
+    Mobile -.->|WebSocket| Realtime
+    
+    %% Estilos
+    classDef clientStyle fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef networkStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef appStyle fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef dataStyle fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef serviceStyle fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class Browser,Mobile,Tablet clientStyle
+    class DNS,SSL,CDN networkStyle
+    class NextJS,SSR,API,Middleware,Static appStyle
+    class PostgreSQL,RLS,Realtime,Storage dataStyle
+    class Auth,Analytics,Monitoring serviceStyle
+```
+
+### Especificaciones Técnicas del Despliegue
+
+#### 🖥️ **Capa de Cliente**
+- **Navegadores Soportados**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Dispositivos Móviles**: iOS 14+, Android 8+
+- **Tecnologías**: HTML5, CSS3, JavaScript ES2022, WebSockets
+- **PWA**: Service Workers para funcionalidad offline
+
+#### 🌍 **Capa de Red y CDN**
+- **DNS**: Cloudflare/Vercel DNS con propagación global
+- **SSL/TLS**: Certificados automáticos Let's Encrypt
+- **CDN**: Vercel Edge Network con 40+ ubicaciones globales
+- **Cache**: Estrategia de cache inteligente para assets estáticos
+- **Compresión**: Gzip/Brotli para optimización de transferencia
+
+#### 🚀 **Capa de Aplicación (Vercel)**
+- **Runtime**: Node.js 18+ con Next.js 15
+- **Rendering**: Hybrid SSR/SSG/CSR según necesidades
+- **API**: Serverless Functions con auto-scaling
+- **Middleware**: Edge Runtime para autenticación
+- **Build**: Automatic deployments desde Git
+- **Regiones**: Despliegue multi-región automático
+
+#### 💾 **Capa de Datos (Supabase)**
+- **Base de Datos**: PostgreSQL 15+ con extensiones
+- **Conexiones**: Connection pooling automático
+- **Backup**: Backups automáticos diarios
+- **Seguridad**: Row Level Security (RLS) habilitado
+- **Real-time**: WebSocket server para actualizaciones live
+- **Storage**: Object storage para archivos multimedia
+
+#### 🔧 **Servicios Externos**
+- **Autenticación**: Supabase Auth con OAuth providers
+- **Analytics**: Vercel Analytics para métricas de uso
+- **Monitoring**: Speed Insights para Core Web Vitals
+- **Logs**: Structured logging con retention de 30 días
+
+#### 📊 **Métricas de Rendimiento**
+- **Tiempo de Carga**: < 2 segundos (First Contentful Paint)
+- **Disponibilidad**: 99.9% uptime SLA
+- **Escalabilidad**: Auto-scaling basado en demanda
+- **Latencia**: < 100ms para consultas de base de datos
+- **Throughput**: 1000+ requests/segundo por región
+
+#### 🔒 **Seguridad**
+- **HTTPS**: Forzado en todas las conexiones
+- **Headers**: Security headers (CSP, HSTS, etc.)
+- **Authentication**: JWT tokens con refresh automático
+- **Authorization**: Role-based access control (RBAC)
+- **Data Protection**: Encriptación en tránsito y reposo
+- **Compliance**: GDPR ready con data residency options-> DNS
     DNS --> SSL
     SSL --> Vercel
     
@@ -333,4 +808,4 @@ flowchart TB
 
 ---
 
-*Documentación  para el Sistema de Gestión de Karate - Versión 1.0*
+*Documentación para el Sistema de Gestión de Karate - Versión 1.0*
