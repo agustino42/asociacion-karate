@@ -127,14 +127,14 @@ classDiagram
     }
 
     %% Relaciones
-    Entrenador ||--o{ Equipo : "1..* entrena"
-    Equipo ||--o{ Atleta : "0..* tiene"
-    Atleta ||--o{ CombateIndividual : "2 participa como atleta1/atleta2"
-    Juez ||--o{ CombateIndividual : "1..* arbitra"
-    Equipo ||--o{ CombateEquipo : "2 compite como equipo1/equipo2"
-    Juez ||--o{ CombateEquipo : "1..* arbitra"
-    CombateIndividual ||--|| Atleta : "ganador"
-    CombateEquipo ||--|| Equipo : "ganador"
+    Entrenador ||--o{ Equipo : entrena
+    Equipo ||--o{ Atleta : tiene
+    Atleta ||--o{ CombateIndividual : participa
+    Juez ||--o{ CombateIndividual : arbitra
+    Equipo ||--o{ CombateEquipo : compite
+    Juez ||--o{ CombateEquipo : arbitra
+    CombateIndividual ||--|| Atleta : ganador
+    CombateEquipo ||--|| Equipo : ganador
 ```
 
 ### Capa de Acceso a Datos y Servicios
@@ -179,9 +179,9 @@ classDiagram
         +desconectar() void
     }
 
-    SupabaseClient ||--o{ AtletaService : "utiliza"
-    SupabaseClient ||--o{ CombateService : "utiliza"
-    SupabaseClient ||--o{ RealtimeService : "utiliza"
+    SupabaseClient ||--o{ AtletaService : utiliza
+    SupabaseClient ||--o{ CombateService : utiliza
+    SupabaseClient ||--o{ RealtimeService : utiliza
 ```
 
 ### Componentes de Interfaz de Usuario
@@ -235,10 +235,10 @@ classDiagram
         +render() JSX.Element
     }
 
-    ThemeProvider ||--o{ AdminLayout : "envuelve"
-    AdminLayout ||--o{ AtletaForm : "contiene"
-    AdminLayout ||--o{ AtletasTable : "contiene"
-    AdminLayout ||--o{ CombateSimulador : "contiene"
+    ThemeProvider ||--o{ AdminLayout : envuelve
+    AdminLayout ||--o{ AtletaForm : contiene
+    AdminLayout ||--o{ AtletasTable : contiene
+    AdminLayout ||--o{ CombateSimulador : contiene
 ```
 
 ---
@@ -699,57 +699,7 @@ flowchart TB
 - **Authentication**: JWT tokens con refresh automático
 - **Authorization**: Role-based access control (RBAC)
 - **Data Protection**: Encriptación en tránsito y reposo
-- **Compliance**: GDPR ready con data residency options-> DNS
-    DNS --> SSL
-    SSL --> Vercel
-    
-    Vercel --> Static
-    Vercel --> NextJS
-    
-    NextJS --> SSR
-    NextJS --> API
-    NextJS --> Middleware
-    
-    API --> Supabase
-    Middleware --> Auth
-    SSR --> Supabase
-    Supabase --> RLS
-    Supabase --> Realtime
-    
-    NextJS --> Analytics
-    Supabase --> Storage
-    
-    Vercel --> CDN_Global
-    CDN_Global --> Static
-```
-
-### Especificaciones Técnicas de Despliegue
-
-#### **Frontend (Cliente)**
-- **Tecnología**: Next.js 15 con React 19
-- **Hosting**: Vercel con Edge Functions
-- **CDN**: Vercel Edge Network global
-- **Características**: SSR, SSG, ISR, Hot Reloading
-
-#### **Backend (Servidor)**
-- **API**: Next.js API Routes + Server Actions
-- **Autenticación**: Supabase Auth con middleware
-- **Base de Datos**: Supabase PostgreSQL
-- **Tiempo Real**: Supabase Realtime para combates en vivo
-
-#### **Infraestructura**
-- **Dominio**: DNS con SSL automático
-- **Escalabilidad**: Auto-scaling en Vercel
-- **Monitoreo**: Vercel Analytics integrado
-- **Seguridad**: RLS en Supabase + HTTPS
-
-#### **Flujo de Datos**
-1. **Cliente** → Solicitud HTTP/HTTPS
-2. **Vercel Edge** → Routing y cache
-3. **Next.js Server** → Procesamiento SSR/API
-4. **Supabase** → Consultas de base de datos
-5. **Realtime** → Updates en tiempo real
-6. **Cliente** → Respuesta renderizada
+- **Compliance**: GDPR ready con data residency options
 
 ---
 
@@ -808,4 +758,4 @@ flowchart TB
 
 ---
 
-*Documentación para el Sistema de Gestión de Karate - Versión 1.0*
+*Documentación  para el Sistema de Gestión de Karate - Versión 1.0*
