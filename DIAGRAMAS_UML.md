@@ -9,6 +9,10 @@ Sistema web de gestión para asociación de karate desarrollado con Next.js 15, 
 
 ### Entidades Principales
 
+# Diagrama de Clases - Sistema de Gestión de Karate
+
+## Entidades Principales
+
 ```mermaid
 classDiagram
     class Atleta {
@@ -140,51 +144,254 @@ classDiagram
     SupabaseClient ||--o{ CombateEquipo : gestiona
 ```
 
-### Componentes de UI
+---
+
+## Componentes de UI
 
 ```mermaid
 classDiagram
     class AdminLayout {
         +ReactNode children
+        +string title
+        +boolean showSidebar
         +render()
+        +toggleSidebar()
     }
 
     class AtletaForm {
         +AtletaFormData formData
-        +onSubmit()
+        +boolean isEditing
+        +Function onSubmit
+        +Function onCancel
         +validate()
+        +handleInputChange()
         +render()
     }
 
     class AtletasTable {
-        +AtletaArray atletas
-        +onEdit()
-        +onDelete()
+        +Atleta[] atletas
+        +boolean loading
+        +Function onEdit
+        +Function onDelete
+        +Function onView
+        +sortData()
+        +filterData()
+        +render()
+    }
+
+    class EntrenadorForm {
+        +EntrenadorFormData formData
+        +boolean isEditing
+        +Function onSubmit
+        +validate()
+        +render()
+    }
+
+    class EntrenadoresTable {
+        +Entrenador[] entrenadores
+        +Function onEdit
+        +Function onDelete
+        +render()
+    }
+
+    class JuezForm {
+        +JuezFormData formData
+        +boolean isEditing
+        +Function onSubmit
+        +validate()
+        +render()
+    }
+
+    class JuecesTable {
+        +Juez[] jueces
+        +Function onEdit
+        +Function onDelete
+        +render()
+    }
+
+    class EquipoForm {
+        +EquipoFormData formData
+        +Entrenador[] entrenadores
+        +Function onSubmit
+        +validate()
+        +render()
+    }
+
+    class EquiposTable {
+        +Equipo[] equipos
+        +Function onEdit
+        +Function onDelete
         +render()
     }
 
     class CombateSimulador {
         +CombateIndividual combate
-        +simularRonda()
-        +actualizarPuntos()
-        +finalizarCombate()
+        +boolean isSimulating
+        +number currentRound
+        +Function simularRonda
+        +Function actualizarPuntos
+        +Function finalizarCombate
+        +Function pausarSimulacion
+        +render()
+    }
+
+    class CombateForm {
+        +CombateFormData formData
+        +Atleta[] atletas
+        +Juez[] jueces
+        +Function onSubmit
+        +validate()
+        +render()
+    }
+
+    class CombatesTable {
+        +CombateIndividual[] combates
+        +Function onSimular
+        +Function onDelete
+        +Function onView
         +render()
     }
 
     class ThemeProvider {
         +string theme
-        +toggleTheme()
+        +Function toggleTheme
+        +ReactNode children
         +render()
     }
 
+    class Sidebar {
+        +MenuItem[] menuItems
+        +string activeRoute
+        +boolean collapsed
+        +Function onNavigate
+        +render()
+    }
+
+    class Header {
+        +string title
+        +User currentUser
+        +Function onLogout
+        +Function toggleTheme
+        +render()
+    }
+
+    class LoadingSpinner {
+        +string size
+        +string color
+        +render()
+    }
+
+    class Modal {
+        +boolean isOpen
+        +string title
+        +ReactNode children
+        +Function onClose
+        +render()
+    }
+
+    class Button {
+        +string variant
+        +string size
+        +boolean disabled
+        +Function onClick
+        +ReactNode children
+        +render()
+    }
+
+    class Input {
+        +string type
+        +string value
+        +string placeholder
+        +boolean required
+        +Function onChange
+        +render()
+    }
+
+    class Select {
+        +Option[] options
+        +string value
+        +Function onChange
+        +render()
+    }
+
+    ThemeProvider ||--o{ AdminLayout : envuelve
+    AdminLayout ||--o{ Header : contiene
+    AdminLayout ||--o{ Sidebar : contiene
     AdminLayout ||--o{ AtletaForm : contiene
     AdminLayout ||--o{ AtletasTable : contiene
+    AdminLayout ||--o{ EntrenadorForm : contiene
+    AdminLayout ||--o{ EntrenadoresTable : contiene
+    AdminLayout ||--o{ JuezForm : contiene
+    AdminLayout ||--o{ JuecesTable : contiene
+    AdminLayout ||--o{ EquipoForm : contiene
+    AdminLayout ||--o{ EquiposTable : contiene
     AdminLayout ||--o{ CombateSimulador : contiene
-    ThemeProvider ||--o{ AdminLayout : envuelve
+    AdminLayout ||--o{ CombateForm : contiene
+    AdminLayout ||--o{ CombatesTable : contiene
+    
+    AtletaForm ||--o{ Input : usa
+    AtletaForm ||--o{ Select : usa
+    AtletaForm ||--o{ Button : usa
+    
+    EntrenadorForm ||--o{ Input : usa
+    EntrenadorForm ||--o{ Button : usa
+    
+    JuezForm ||--o{ Input : usa
+    JuezForm ||--o{ Select : usa
+    JuezForm ||--o{ Button : usa
+    
+    EquipoForm ||--o{ Input : usa
+    EquipoForm ||--o{ Select : usa
+    EquipoForm ||--o{ Button : usa
+    
+    CombateForm ||--o{ Select : usa
+    CombateForm ||--o{ Button : usa
+    
+    AtletasTable ||--o{ Button : usa
+    AtletasTable ||--o{ LoadingSpinner : usa
+    
+    EntrenadoresTable ||--o{ Button : usa
+    JuecesTable ||--o{ Button : usa
+    EquiposTable ||--o{ Button : usa
+    CombatesTable ||--o{ Button : usa
+    
+    CombateSimulador ||--o{ Button : usa
+    CombateSimulador ||--o{ Modal : usa
+    
+    Modal ||--o{ Button : usa
 ```
 
----
+### Descripción de Componentes
 
+#### Componentes de Layout:
+- **AdminLayout**: Layout principal que envuelve todas las páginas administrativas
+- **Header**: Barra superior con título, usuario y controles
+- **Sidebar**: Menú lateral de navegación
+- **ThemeProvider**: Proveedor de contexto para el tema claro/oscuro
+
+#### Componentes de Formularios:
+- **AtletaForm**: Formulario para crear/editar atletas
+- **EntrenadorForm**: Formulario para gestionar entrenadores
+- **JuezForm**: Formulario para administrar jueces
+- **EquipoForm**: Formulario para crear equipos
+- **CombateForm**: Formulario para configurar combates
+
+#### Componentes de Tablas:
+- **AtletasTable**: Lista de atletas con acciones CRUD
+- **EntrenadoresTable**: Tabla de entrenadores
+- **JuecesTable**: Lista de jueces
+- **EquiposTable**: Tabla de equipos
+- **CombatesTable**: Lista de combates con simulación
+
+#### Componentes de Simulación:
+- **CombateSimulador**: Componente principal para simular combates en tiempo real
+
+#### Componentes Base:
+- **Button**: Botón reutilizable con variantes
+- **Input**: Campo de entrada de texto
+- **Select**: Selector dropdown
+- **Modal**: Ventana modal
+- **LoadingSpinner**: Indicador de carga
 ## 2. Diagrama de Actividades
 
 ### Proceso de Gestión de Combate Individual
