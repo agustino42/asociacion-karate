@@ -126,19 +126,18 @@ classDiagram
         +delete()
     }
 
-    %% Relaciones
-    Equipo ||--o{ Atleta : "tiene"
-    Entrenador ||--o{ Equipo : "entrena"
-    Atleta ||--o{ CombateIndividual : "participa"
-    Juez ||--o{ CombateIndividual : "arbitra"
-    Equipo ||--o{ CombateEquipo : "compite"
-    Juez ||--o{ CombateEquipo : "arbitra"
-    SupabaseClient ||--o{ Atleta : "gestiona"
-    SupabaseClient ||--o{ Entrenador : "gestiona"
-    SupabaseClient ||--o{ Equipo : "gestiona"
-    SupabaseClient ||--o{ Juez : "gestiona"
-    SupabaseClient ||--o{ CombateIndividual : "gestiona"
-    SupabaseClient ||--o{ CombateEquipo : "gestiona"
+    Equipo ||--o{ Atleta : tiene
+    Entrenador ||--o{ Equipo : entrena
+    Atleta ||--o{ CombateIndividual : participa
+    Juez ||--o{ CombateIndividual : arbitra
+    Equipo ||--o{ CombateEquipo : compite
+    Juez ||--o{ CombateEquipo : arbitra
+    SupabaseClient ||--o{ Atleta : gestiona
+    SupabaseClient ||--o{ Entrenador : gestiona
+    SupabaseClient ||--o{ Equipo : gestiona
+    SupabaseClient ||--o{ Juez : gestiona
+    SupabaseClient ||--o{ CombateIndividual : gestiona
+    SupabaseClient ||--o{ CombateEquipo : gestiona
 ```
 
 ### Componentes de UI
@@ -178,10 +177,10 @@ classDiagram
         +render()
     }
 
-    AdminLayout ||--o{ AtletaForm : "contiene"
-    AdminLayout ||--o{ AtletasTable : "contiene"
-    AdminLayout ||--o{ CombateSimulador : "contiene"
-    ThemeProvider ||--o{ AdminLayout : "envuelve"
+    AdminLayout ||--o{ AtletaForm : contiene
+    AdminLayout ||--o{ AtletasTable : contiene
+    AdminLayout ||--o{ CombateSimulador : contiene
+    ThemeProvider ||--o{ AdminLayout : envuelve
 ```
 
 ---
@@ -193,14 +192,14 @@ classDiagram
 ```mermaid
 flowchart TD
     A[Inicio] --> B[Acceder a Admin Panel]
-    B --> C[Seleccionar 'Combates']
-    C --> D[Elegir 'Nuevo Combate Individual']
+    B --> C[Seleccionar Combates]
+    C --> D[Elegir Nuevo Combate Individual]
     D --> E[Seleccionar Atleta 1]
     E --> F[Seleccionar Atleta 2]
     F --> G[Asignar Juez]
     G --> H[Configurar Tipo de Combate]
     H --> I[Crear Combate]
-    I --> J{¿Combate Creado?}
+    I --> J{Combate Creado?}
     
     J -->|Sí| K[Iniciar Simulación]
     J -->|No| L[Mostrar Error]
@@ -208,7 +207,7 @@ flowchart TD
     
     K --> M[Simular Rondas]
     M --> N[Actualizar Puntos en Tiempo Real]
-    N --> O{¿Combate Terminado?}
+    N --> O{Combate Terminado?}
     
     O -->|No| P[Continuar Simulación]
     P --> M
@@ -224,19 +223,19 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Inicio] --> B[Acceder a Gestión de Atletas]
-    B --> C[Seleccionar 'Nuevo Atleta']
+    B --> C[Seleccionar Nuevo Atleta]
     C --> D[Llenar Formulario]
     D --> E[Ingresar Datos Personales]
     E --> F[Seleccionar Categoría de Peso]
     F --> G[Asignar Cinturón]
     G --> H[Asignar Equipo Opcional]
     H --> I[Validar Formulario]
-    I --> J{¿Datos Válidos?}
+    I --> J{Datos Válidos?}
     
     J -->|No| K[Mostrar Errores]
     K --> D
     J -->|Sí| L[Enviar a Supabase]
-    L --> M{¿Guardado Exitoso?}
+    L --> M{Guardado Exitoso?}
     
     M -->|No| N[Mostrar Error de BD]
     N --> D
@@ -252,8 +251,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph "Sistema de Gestión de Karate"
-        subgraph "Casos de Uso Principales"
+    subgraph Sistema["Sistema de Gestión de Karate"]
+        subgraph Principales["Casos de Uso Principales"]
             UC1[Gestionar Atletas]
             UC2[Gestionar Entrenadores]
             UC3[Gestionar Jueces]
@@ -266,7 +265,7 @@ flowchart LR
             UC10[Ver Combates en Vivo]
         end
         
-        subgraph "Casos de Uso Secundarios"
+        subgraph Secundarios["Casos de Uso Secundarios"]
             UC11[Autenticación]
             UC12[Cambiar Tema]
             UC13[Exportar Datos]
@@ -275,13 +274,12 @@ flowchart LR
         end
     end
     
-    subgraph "Actores"
+    subgraph Actores["Actores"]
         Admin[Administrador]
         Viewer[Espectador]
         System[Sistema]
     end
     
-    %% Relaciones Administrador
     Admin --> UC1
     Admin --> UC2
     Admin --> UC3
@@ -294,16 +292,13 @@ flowchart LR
     Admin --> UC14
     Admin --> UC15
     
-    %% Relaciones Espectador
     Viewer --> UC8
     Viewer --> UC10
     Viewer --> UC12
     
-    %% Relaciones Sistema
     System --> UC7
     System --> UC13
     
-    %% Extensiones y Inclusiones
     UC5 -.->|extends| UC7
     UC6 -.->|extends| UC7
     UC9 -.->|includes| UC11
@@ -332,68 +327,62 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph "Cliente"
+    subgraph Cliente["Cliente"]
         Browser[Navegador Web]
         Mobile[Dispositivo Móvil]
     end
     
-    subgraph "CDN/Edge"
+    subgraph CDN["CDN/Edge"]
         Vercel[Vercel Edge Network]
         Static[Archivos Estáticos]
     end
     
-    subgraph "Servidor de Aplicación"
+    subgraph Servidor["Servidor de Aplicación"]
         NextJS[Next.js 15 Server]
         SSR[Server-Side Rendering]
         API[API Routes]
         Middleware[Middleware Auth]
     end
     
-    subgraph "Base de Datos"
+    subgraph BaseDatos["Base de Datos"]
         Supabase[Supabase PostgreSQL]
         RLS[Row Level Security]
         Realtime[Realtime Subscriptions]
     end
     
-    subgraph "Servicios Externos"
+    subgraph Servicios["Servicios Externos"]
         Analytics[Vercel Analytics]
         Auth[Supabase Auth]
         Storage[Supabase Storage]
     end
     
-    subgraph "Infraestructura"
+    subgraph Infraestructura["Infraestructura"]
         DNS[DNS Provider]
         SSL[SSL Certificate]
         CDN_Global[Global CDN]
     end
     
-    %% Conexiones Cliente
     Browser --> DNS
     Mobile --> DNS
     DNS --> SSL
     SSL --> Vercel
     
-    %% Conexiones CDN
     Vercel --> Static
     Vercel --> NextJS
     
-    %% Conexiones Servidor
     NextJS --> SSR
     NextJS --> API
     NextJS --> Middleware
     
-    %% Conexiones Base de Datos
     API --> Supabase
     Middleware --> Auth
     SSR --> Supabase
     Supabase --> RLS
     Supabase --> Realtime
     
-    %% Conexiones Servicios
     NextJS --> Analytics
     Supabase --> Storage
     
-    %% Conexiones Infraestructura
     Vercel --> CDN_Global
     CDN_Global --> Static
 ```
