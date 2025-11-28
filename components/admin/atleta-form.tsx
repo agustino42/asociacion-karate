@@ -44,6 +44,7 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
     setLoading(true)
     setError(null)
 
+    // Preparar Datos para envio
     try {
       const dataToSubmit: AtletaFormData = {
         nombre: formData.nombre,

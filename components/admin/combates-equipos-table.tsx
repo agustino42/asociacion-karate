@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Eye, Trophy, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
+import { Eye, Trophy, Trash2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { eliminarCombateEquipo } from "@/app/actions/combates"
+import { useToast } from "@/hooks/use-toast"
 
 type CombateEquipo = {
   id: string
@@ -37,10 +38,13 @@ type Props = {
   totalPages: number
   totalItems: number
 }
-
+// componente de tabla para combates por equipos
 export function CombatesEquiposTable({ combates, currentPage, totalPages, totalItems }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  
   const getEstadoBadge = (estado: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       programado: "secondary",
@@ -52,13 +56,26 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
   }
 
   const handleDelete = async (id: string) => {
+    setDeletingId(id)
     try {
-      await eliminarCombateEquipo(id)
+      const result = await eliminarCombateEquipo(id)
+      toast({
+        title: "Combate eliminado",
+        description: "El combate por equipos ha sido eliminado correctamente.",
+      })
+      router.refresh()
     } catch (error) {
-      console.error("[] Error al eliminar combate por equipos:", error)
+      console.error("Error al eliminar combate por equipos:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el combate. Inténtalo de nuevo.",
+        variant: "destructive",
+      })
+    } finally {
+      setDeletingId(null)
     }
   }
-
+// manejo de paginacion
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('pageEq', page.toString())
@@ -136,21 +153,50 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
                     )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <Trash2 className="h-4 w-4" />
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          disabled={deletingId === combate.id}
+                        >
+                          {deletingId === combate.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                          <AlertDialogTitle>¿Eliminar combate por equipos?</AlertDialogTitle>
                           <AlertDialogDescription>
                             Esta acción no se puede deshacer. Se eliminará permanentemente el combate entre{" "}
-                            {combate.equipo1.nombre} y {combate.equipo2.nombre}.
+                            <strong>{combate.equipo1.nombre}</strong> y <strong>{combate.equipo2.nombre}</strong>.
+                            <br /><br />
+                            {combate.estado === "en_curso" && (
+                              <span className="text-orange-600 font-medium">
+                                ⚠️ Este combate está en curso y se eliminará también de "Combates en Vivo".
+                              </span>
+                            )}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(combate.id)}>Eliminar</AlertDialogAction>
+                          <AlertDialogCancel disabled={deletingId === combate.id}>
+                            Cancelar
+                          </AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDelete(combate.id)}
+                            disabled={deletingId === combate.id}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            {deletingId === combate.id ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Eliminando...
+                              </>
+                            ) : (
+                              "Eliminar Combate"
+                            )}
+                          </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
                     </AlertDialog>

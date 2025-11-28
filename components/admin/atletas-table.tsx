@@ -78,7 +78,7 @@ export function AtletasTable({ atletas }: { atletas: Atleta[] }) {
   const endIndex = startIndex + itemsPerPage
   const currentAtletas = filteredAtletas.slice(startIndex, endIndex)
 
-  // Reset to first page when search changes
+  //Resetea la Pagina al cambiar el Termino de busqueda
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
     setCurrentPage(1)

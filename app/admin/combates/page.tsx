@@ -1,10 +1,11 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
-import { Plus, Shuffle } from "lucide-react"
+import { Plus, Shuffle, Trophy, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CombatesIndividualesTable } from "@/components/admin/combates-individuales-table"
 import { CombatesEquiposTable } from "@/components/admin/combates-equipos-table"
+import { LimpiarCombatesButton } from "@/components/admin/limpiar-combates-button"
 
 type SearchParams = {
   pageInd?: string
@@ -73,10 +74,11 @@ export default async function CombatesPage({ searchParams }: { searchParams: Sea
             <TabsTrigger value="equipos">Combates por Equipos</TabsTrigger>
           </TabsList>
           <div className="flex gap-2 flex-wrap">
-            <Link href="/admin/combates/sorteo">
+            <LimpiarCombatesButton />
+            <Link href="/admin/combates/campionatos">
               <Button variant="secondary">
-                <Shuffle className="mr-2 h-4 w-4" />
-                Generar Sorteo
+                <Trophy className="mr-2 h-4 w-4" />
+                Campionatos
               </Button>
             </Link>
             <Link href="/admin/combates/nuevo-individual">

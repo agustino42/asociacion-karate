@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { notFound } from "next/navigation"
-import { GestionarCombateIndividual } from "@/components/admin/gestionar-combate-individual"
+import { GestionarCombateIndividualNuevo } from "@/components/admin/gestionar-combate-individual-nuevo"
 
 export default async function CombateIndividualPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -25,15 +25,8 @@ export default async function CombateIndividualPage({ params }: { params: Promis
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Gestionar Combate 1vs1</h1>
-        <p className="text-muted-foreground">
-          {combate.atleta1.nombre} {combate.atleta1.apellido} vs {combate.atleta2.nombre} {combate.atleta2.apellido}
-        </p>
-      </div>
-
-      <GestionarCombateIndividual combate={combate} />
+    <div className="container mx-auto px-4 py-6">
+      <GestionarCombateIndividualNuevo combate={combate} />
     </div>
   )
 }
