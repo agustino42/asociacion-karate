@@ -1,13 +1,64 @@
 # Diagramas UML - Sistema de Gestión de Karate
 
-## Descripción del Sistema
-Sistema web de gestión para asociación de karate desarrollado con Next.js 15, Supabase, TypeScript y Tailwind CSS. Permite administrar atletas, entrenadores, jueces, equipos y combates con simulación en tiempo real.
+## 📋 Descripción del Sistema
+
+Este documento contiene la documentación completa de los **Diagramas UML** del Sistema de Gestión de Karate, una aplicación web moderna desarrollada con tecnologías de vanguardia.
+
+### Sobre el Sistema
+Sistema web integral de gestión para asociaciones de karate que permite:
+- **Gestión de Entidades**: Administración completa de atletas, entrenadores, jueces y equipos
+- **Gestión de Combates**: Creación y simulación de combates individuales y por equipos
+- **Monitoreo en Tiempo Real**: Seguimiento de combates activos con actualizaciones instantáneas
+- **Análisis y Reportes**: Rankings, estadísticas y reportes detallados
+
+### Stack Tecnológico
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Real-time + Auth)
+- **Despliegue**: Vercel con Edge Network global
+- **Características**: SSR/SSG, WebSockets, PWA-ready
+
+### Propósito de este Documento
+Este documento presenta cuatro tipos de diagramas UML que modelan diferentes aspectos del sistema:
+1. **Diagramas de Clases**: Estructura estática del sistema
+2. **Diagramas de Actividades**: Flujos de procesos y comportamientos
+3. **Diagramas de Casos de Uso**: Interacciones entre actores y sistema
+4. **Diagramas de Despliegue**: Arquitectura de infraestructura y componentes
 
 ---
 
-## 1. Diagrama de Clases
+## 📑 Tabla de Contenidos
 
-### Entidades Principales del Dominio
+1. [📐 Diagrama de Clases](#1--diagrama-de-clases)
+   - [🎯 Entidades Principales del Dominio](#-entidades-principales-del-dominio)
+   - [🔌 Capa de Acceso a Datos y Servicios](#-capa-de-acceso-a-datos-y-servicios)
+   - [🎨 Componentes de Interfaz de Usuario](#-componentes-de-interfaz-de-usuario)
+
+2. [🔄 Diagrama de Actividades](#2--diagrama-de-actividades)
+   - [⚔️ Proceso de Gestión de Combate Individual](#️-proceso-de-gestión-de-combate-individual)
+   - [📝 Proceso de Registro de Atleta](#-proceso-de-registro-de-atleta)
+   - [⚡ Proceso de Simulación de Combate en Tiempo Real](#-proceso-de-simulación-de-combate-en-tiempo-real)
+
+3. [🎭 Diagrama de Casos de Uso](#3--diagrama-de-casos-de-uso)
+   - [👥 Actores del Sistema](#-actores-del-sistema)
+   - [📊 Especificación Detallada de Casos de Uso](#-especificación-detallada-de-casos-de-uso)
+
+4. [📦 Diagrama de Despliegue](#4--diagrama-de-despliegue)
+   - [🏛️ Arquitectura de Infraestructura](#️-arquitectura-de-infraestructura)
+   - [🔧 Especificaciones Técnicas del Despliegue](#-especificaciones-técnicas-del-despliegue)
+
+5. [🛠️ Tecnologías Utilizadas](#️-tecnologías-utilizadas)
+
+6. [✨ Características del Sistema](#-características-del-sistema)
+
+---
+
+## 1. 📐 Diagrama de Clases
+
+El diagrama de clases muestra la estructura estática del sistema, incluyendo las entidades del dominio, sus atributos, métodos y relaciones.
+
+### 🎯 Entidades Principales del Dominio
+
+Estas clases representan los conceptos centrales del negocio: atletas, entrenadores, equipos, jueces y combates.
 
 ```mermaid
 classDiagram
@@ -137,7 +188,9 @@ classDiagram
     CombateEquipo ||--|| Equipo : ganador
 ```
 
-### Capa de Acceso a Datos y Servicios
+### 🔌 Capa de Acceso a Datos y Servicios
+
+Estas clases manejan la comunicación con Supabase y encapsulan la lógica de acceso a datos.
 
 ```mermaid
 classDiagram
@@ -184,7 +237,9 @@ classDiagram
     SupabaseClient ||--o{ RealtimeService : utiliza
 ```
 
-### Componentes de Interfaz de Usuario
+### 🎨 Componentes de Interfaz de Usuario
+
+Componentes React que conforman la interfaz de usuario del sistema administrativo.
 
 ```mermaid
 classDiagram
@@ -243,9 +298,13 @@ classDiagram
 
 ---
 
-## 2. Diagrama de Actividades
+## 2. 🔄 Diagrama de Actividades
 
-### Proceso de Gestión de Combate Individual
+Los diagramas de actividades modelan los flujos de trabajo y procesos del sistema, mostrando la secuencia de acciones desde el inicio hasta la finalización de cada proceso.
+
+### ⚔️ Proceso de Gestión de Combate Individual
+
+Este diagrama muestra el flujo completo desde la creación de un combate hasta su finalización, incluyendo validaciones y simulación en tiempo real.
 
 ```mermaid
 flowchart TD
@@ -260,7 +319,7 @@ flowchart TD
     I --> J{¿Categorías Compatibles?}
     
     J -->|No| K[Mostrar Advertencia]
-    K --> L[¿Continuar Anyway?]
+    K --> L[¿Continuar de Todos Modos?]
     L -->|No| H
     L -->|Sí| M[Cargar Lista de Jueces]
     
@@ -302,7 +361,9 @@ flowchart TD
     LL --> MM([Fin])
 ```
 
-### Proceso de Registro de Atleta
+### 📝 Proceso de Registro de Atleta
+
+Flujo detallado del proceso de alta de un nuevo atleta en el sistema, con todas las validaciones necesarias.
 
 ```mermaid
 flowchart TD
@@ -348,7 +409,9 @@ flowchart TD
     EE --> FF([Fin])
 ```
 
-### Proceso de Simulación de Combate en Tiempo Real
+### ⚡ Proceso de Simulación de Combate en Tiempo Real
+
+Este diagrama detalla el motor de simulación que genera eventos aleatorios y actualiza los puntos en tiempo real mediante WebSockets.
 
 ```mermaid
 flowchart TD
@@ -395,7 +458,14 @@ flowchart TD
 
 ---
 
-## 3. Diagrama de Casos de Uso
+## 3. 🎭 Diagrama de Casos de Uso
+
+El diagrama de casos de uso identifica las funcionalidades del sistema desde la perspectiva de los usuarios (actores), mostrando qué puede hacer cada tipo de usuario y cómo interactúan con el sistema.
+
+### 👥 Actores del Sistema
+- **👤 Administrador**: Usuario con permisos completos para gestionar todas las entidades y configuraciones
+- **👁️ Espectador**: Usuario que puede visualizar combates y estadísticas sin permisos de modificación
+- **🤖 Sistema**: Procesos automáticos que se ejecutan sin intervención humana
 
 ```mermaid
 flowchart TB
@@ -483,7 +553,9 @@ flowchart TB
     UC18 -.->|<<includes>>| UC6
 ```
 
-### Especificación Detallada de Casos de Uso
+### 📊 Especificación Detallada de Casos de Uso
+
+A continuación se detallan los casos de uso más importantes del sistema con sus características principales.
 
 #### 🏆 Casos de Uso Principales
 
@@ -557,7 +629,13 @@ flowchart TB
 
 ---
 
-## 4. Diagrama de Despliegue
+## 4. 📦 Diagrama de Despliegue
+
+El diagrama de despliegue muestra la arquitectura física del sistema, incluyendo los servidores, servicios, componentes de infraestructura y cómo se comunican entre sí.
+
+### 🏛️ Arquitectura de Infraestructura
+
+Este diagrama representa la arquitectura completa de despliegue en producción, desde los clientes hasta los servicios de backend.
 
 ```mermaid
 flowchart TB
@@ -649,7 +727,9 @@ flowchart TB
     class Auth,Analytics,Monitoring serviceStyle
 ```
 
-### Especificaciones Técnicas del Despliegue
+### 🔧 Especificaciones Técnicas del Despliegue
+
+Detalles técnicos de cada capa de la arquitectura de despliegue.
 
 #### 🖥️ **Capa de Cliente**
 - **Navegadores Soportados**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
@@ -703,28 +783,30 @@ flowchart TB
 
 ---
 
-## Tecnologías Utilizadas
+## 🛠️ Tecnologías Utilizadas
 
-### **Frontend**
+Stack tecnológico completo del sistema organizado por capas.
+
+### 🎨 **Frontend**
 - Next.js 15 (App Router)
 - React 19 con TypeScript
 - Tailwind CSS + Radix UI
 - Framer Motion (animaciones)
 - Lucide React (iconos)
 
-### **Backend**
+### ⚙️ **Backend**
 - Supabase (BaaS)
 - PostgreSQL con RLS
 - Server Actions de Next.js
 - Middleware de autenticación
 
-### **Herramientas de Desarrollo**
+### 💻 **Herramientas de Desarrollo**
 - TypeScript para type safety
 - ESLint para calidad de código
 - PostCSS para procesamiento CSS
 - Zod para validación de schemas
 
-### **Despliegue y Monitoreo**
+### 🚀 **Despliegue y Monitoreo**
 - Vercel para hosting
 - Vercel Analytics
 - Git para control de versiones
@@ -732,7 +814,9 @@ flowchart TB
 
 ---
 
-## Características del Sistema
+## ✨ Características del Sistema
+
+Resumen de las funcionalidades y características técnicas implementadas.
 
 ### **Funcionalidades Principales**
 ✅ Gestión completa de atletas, entrenadores y jueces  
@@ -758,4 +842,21 @@ flowchart TB
 
 ---
 
-*Documentación  para el Sistema de Gestión de Karate - Versión 1.0*
+---
+
+## 📚 Información del Documento
+
+**Título**: Diagramas UML - Sistema de Gestión de Karate  
+**Versión**: 1.0  
+**Última Actualización**: Noviembre 2025  
+**Autor**: Equipo de Desarrollo  
+**Propósito**: Documentación técnica de arquitectura y diseño del sistema
+
+### 📝 Notas
+- Todos los diagramas están en formato Mermaid para fácil visualización en GitHub y editores compatibles
+- Los diagramas se actualizan conforme evoluciona el sistema
+- Para sugerencias o correcciones, contactar al equipo de desarrollo
+
+---
+
+*© 2025 Sistema de Gestión de Karate - Ing en Informatica*
