@@ -157,7 +157,7 @@ classDiagram
     }
 
     class AtletasTable {
-        +Atleta[] atletas
+        +AtletaArray atletas
         +onEdit()
         +onDelete()
         +render()
@@ -472,4 +472,4 @@ flowchart TB
 
 ---
 
-*Documentación generada para el Sistema de Gestión de Karate - Versión 1.0*
+*Documentación  para el Sistema de Gestión de Karate - Versión 1.0*
