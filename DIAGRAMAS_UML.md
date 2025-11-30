@@ -60,133 +60,57 @@ El diagrama de clases muestra la estructura estática del sistema, incluyendo la
 
 Estas clases representan los conceptos centrales del negocio: atletas, entrenadores, equipos, jueces y combates.
 
-```mermaid
 classDiagram
-    class Atleta {
+    class Usuario {
+        <<Abstract>>
         -UUID id
         -string nombre
         -string apellido
         -string cedula
+        -string email
+        -string telefono
+        -boolean activo
+        -DateTime created_at
+        -DateTime updated_at
+        +validarDatos() boolean
+        +activar() void
+        +desactivar() void
+    }
+
+    class Atleta {
         -Date fecha_nacimiento
         -decimal peso
         -string categoria_peso
         -string cinturon
         -string foto_url
         -UUID equipo_id
-        -boolean activo
-        -DateTime created_at
-        -DateTime updated_at
-        +crearAtleta() Atleta
-        +actualizarAtleta(datos) boolean
-        +eliminarAtleta() boolean
-        +obtenerAtletas() Atleta[]
-        +obtenerPorId(id) Atleta
         +calcularEdad() int
         +validarPeso() boolean
+        +actualizarCategoria() void
     }
 
     class Entrenador {
-        -UUID id
-        -string nombre
-        -string apellido
-        -string cedula
         -int anos_experiencia
         -string especialidad
-        -string telefono
-        -string email
-        -string foto_url
-        -boolean activo
-        -DateTime created_at
-        -DateTime updated_at
-        +crearEntrenador() Entrenador
-        +actualizarEntrenador(datos) boolean
-        +eliminarEntrenador() boolean
-        +obtenerEntrenadores() Entrenador[]
+        -string certificaciones
         +validarExperiencia() boolean
-    }
-
-    class Equipo {
-        -UUID id
-        -string nombre
-        -UUID entrenador_id
-        -string descripcion
-        -DateTime created_at
-        -DateTime updated_at
-        +crearEquipo() Equipo
-        +actualizarEquipo(datos) boolean
         +obtenerEquipos() Equipo[]
-        +obtenerAtletas() Atleta[]
-        +contarMiembros() int
     }
 
-    class Juez {
-        -UUID id
-        -string nombre
-        -string apellido
-        -string cedula
-        -string nivel_certificacion
-        -int anos_experiencia
-        -string telefono
-        -string email
-        -boolean activo
-        -DateTime created_at
-        -DateTime updated_at
-        +crearJuez() Juez
-        +actualizarJuez(datos) boolean
-        +eliminarJuez() boolean
-        +validarCertificacion() boolean
-        +puedeArbitrar(combate) boolean
-    }
-
-    class CombateIndividual {
-        -UUID id
-        -UUID atleta1_id
-        -UUID atleta2_id
-        -UUID juez_id
-        -string estado
-        -int puntos_atleta1
-        -int puntos_atleta2
-        -UUID ganador_id
-        -string tipo_combate
-        -DateTime fecha_inicio
-        -DateTime fecha_fin
-        -DateTime created_at
-        +crearCombate() CombateIndividual
-        +iniciarCombate() boolean
-        +simularRonda() void
-        +actualizarPuntos(atleta, puntos) void
-        +finalizarCombate() void
-        +determinarGanador() UUID
-    }
-
-    class CombateEquipo {
-        -UUID id
-        -UUID equipo1_id
-        -UUID equipo2_id
-        -UUID juez_id
-        -string estado
-        -int puntos_equipo1
-        -int puntos_equipo2
-        -UUID ganador_id
-        -DateTime fecha_inicio
-        -DateTime fecha_fin
-        -DateTime created_at
-        +crearCombateEquipo() CombateEquipo
-        +iniciarCombate() boolean
-        +simularCombate() void
-        +calcularPuntosEquipo() int
-    }
-
-    %% Relaciones
-    Entrenador ||--o{ Equipo : entrena
-    Equipo ||--o{ Atleta : tiene
-    Atleta ||--o{ CombateIndividual : participa
-    Juez ||--o{ CombateIndividual : arbitra
-    Equipo ||--o{ CombateEquipo : compite
-    Juez ||--o{ CombateEquipo : arbitra
-    CombateIndividual ||--|| Atleta : ganador
-    CombateEquipo ||--|| Equipo : ganador
-```
+    Usuario <|-- Atleta
+    Usuario <|-- Entrenador
+    Usuario <|-- Juez
+    
+    Entrenador --> Equipo
+    Equipo --> Atleta
+    
+    Combate <|-- CombateIndividual
+    Combate <|-- CombateEquipo
+    
+    Juez --> Combate
+    Atleta --> CombateIndividual
+    Equipo --> CombateEquipo
+    Torneo --> Combate
 
 ### 🔌 Capa de Acceso a Datos y Servicios
 
@@ -302,161 +226,148 @@ classDiagram
 
 Los diagramas de actividades modelan los flujos de trabajo y procesos del sistema, mostrando la secuencia de acciones desde el inicio hasta la finalización de cada proceso.
 
-### ⚔️ Proceso de Gestión de Combate Individual
+⚔️ Flujo Completo de Gestión de Combate
 
 Este diagrama muestra el flujo completo desde la creación de un combate hasta su finalización, incluyendo validaciones y simulación en tiempo real.
 
-```mermaid
 flowchart TD
-    A([Inicio]) --> B[Acceder a Admin Panel]
-    B --> C[Navegar a Combates]
-    C --> D[Seleccionar 'Nuevo Combate Individual']
-    D --> E[Cargar Lista de Atletas Activos]
-    E --> F[Seleccionar Atleta 1]
-    F --> G[Filtrar Atletas Compatibles]
-    G --> H[Seleccionar Atleta 2]
-    H --> I[Validar Categorías de Peso]
-    I --> J{¿Categorías Compatibles?}
+    A[🚀 Inicio del Sistema] --> B[🔐 Autenticación de Usuario]
+    B --> C{¿Credenciales Válidas?}
     
-    J -->|No| K[Mostrar Advertencia]
-    K --> L[¿Continuar de Todos Modos?]
-    L -->|No| H
-    L -->|Sí| M[Cargar Lista de Jueces]
+    C -->|No| D[❌ Mostrar Error de Login]
+    D --> B
     
-    J -->|Sí| M
-    M --> N[Seleccionar Juez Disponible]
-    N --> O[Configurar Tipo de Combate]
-    O --> P[Validar Configuración]
-    P --> Q{¿Datos Válidos?}
+    C -->|Sí Admin| E[📊 Panel de Administración]
+    C -->|Sí Espectador| F[👀 Vista de Espectador]
     
-    Q -->|No| R[Mostrar Errores de Validación]
-    R --> D
+    E --> G[⚔️ Módulo de Combates]
+    G --> H[➕ Crear Nuevo Combate]
     
-    Q -->|Sí| S[Crear Combate en BD]
-    S --> T{¿Combate Creado?}
+    H --> I[👥 Seleccionar Atletas]
+    I --> J[⚖️ Validar Categorías]
+    J --> K{¿Categorías Compatibles?}
     
-    T -->|No| U[Mostrar Error de BD]
-    U --> D
+    K -->|No| L[⚠️ Mostrar Advertencia]
+    L --> M{¿Forzar Combate?}
+    M -->|No| I
+    M -->|Sí| N[👨‍⚖️ Seleccionar Juez]
     
-    T -->|Sí| V[Inicializar Simulador]
-    V --> W[Mostrar Panel de Control]
-    W --> X[Iniciar Simulación]
-    X --> Y[Simular Ronda]
-    Y --> Z[Generar Puntos Aleatorios]
-    Z --> AA[Actualizar Puntos en Tiempo Real]
-    AA --> BB[Notificar via WebSocket]
-    BB --> CC{¿Condición de Victoria?}
+    K -->|Sí| N
     
-    CC -->|No| DD{¿Continuar Simulación?}
-    DD -->|Sí| Y
-    DD -->|No| EE[Pausar Combate]
-    EE --> FF([Fin Temporal])
+    N --> O[⚙️ Configurar Combate]
+    O --> P[✅ Validar Configuración]
+    P --> Q{¿Configuración Válida?}
     
-    CC -->|Sí| GG[Determinar Ganador]
-    GG --> HH[Actualizar Estado a 'Finalizado']
-    HH --> II[Guardar Resultado Final]
-    II --> JJ[Actualizar Estadísticas]
-    JJ --> KK[Enviar Notificación]
-    KK --> LL[Mostrar Resultado]
-    LL --> MM([Fin])
-```
+    Q -->|No| R[📝 Corregir Errores]
+    R --> O
+    
+    Q -->|Sí| S[💾 Guardar en Base de Datos]
+    S --> T{¿Guardado Exitoso?}
+    
+    T -->|No| U[🔴 Error de Base de Datos]
+    U --> H
+    
+    T -->|Sí| V[🎮 Iniciar Simulador]
+    
+    V --> W[▶️ Iniciar Simulación]
+    W --> X[🔄 Bucle de Simulación]
+    
+    X --> Y[🎲 Generar Evento Aleatorio]
+    Y --> Z{📊 Tipo de Evento}
+    
+    Z -->|🎯 Golpe Exitoso| AA[➕ Sumar Puntos]
+    Z -->|🛡️ Bloqueo| BB[🔄 Cambiar Turno]
+    Z -->|💫 Técnica Especial| CC[⭐ Puntos Dobles]
+    
+    AA --> DD[📡 Transmitir Actualización]
+    CC --> DD
+    BB --> EE[⏰ Esperar Intervalo]
+    
+    DD --> FF[📊 Actualizar Interfaz]
+    FF --> GG{🎯 Condición de Victoria?}
+    
+    GG -->|No| HH{⏱️ Tiempo Agotado?}
+    HH -->|No| EE
+    EE --> X
+    
+    HH -->|Sí| II[📈 Comparar Puntos]
+    II --> JJ{🤝 ¿Empate?}
+    JJ -->|Sí| KK[🔄 Ronda Extra]
+    KK --> X
+    
+    GG -->|Sí| LL[🏆 Determinar Ganador]
+    JJ -->|No| LL
+    
+    LL --> MM[📋 Finalizar Combate]
+    MM --> NN[💾 Guardar Resultados]
+    NN --> OO[📊 Actualizar Estadísticas]
+    OO --> PP[📢 Notificar Resultados]
+    PP --> QQ[✅ Proceso Completado]
 
 ### 📝 Proceso de Registro de Atleta
 
-Flujo detallado del proceso de alta de un nuevo atleta en el sistema, con todas las validaciones necesarias.
+Flujo detallado del proceso para Agregar  un nuevo atleta en el sistema, con todas las validaciones necesarias.
 
-```mermaid
 flowchart TD
-    A([Inicio]) --> B[Acceder a Gestión de Atletas]
-    B --> C[Hacer Click en 'Nuevo Atleta']
-    C --> D[Cargar Formulario Vacío]
-    D --> E[Ingresar Nombre y Apellido]
-    E --> F[Ingresar Cédula]
-    F --> G[Validar Cédula Única]
-    G --> H{¿Cédula Disponible?}
+    A[👤 Registro de Nuevo Atleta] --> B[📝 Abrir Formulario]
+    B --> C[✍️ Ingresar Datos Personales]
     
-    H -->|No| I[Mostrar Error: Cédula Existente]
-    I --> F
+    subgraph DatosPersonales [Datos Personales]
+        C1[👤 Nombre y Apellido]
+        C2[🆔 Cédula de Identidad]
+        C3[🎂 Fecha de Nacimiento]
+    end
     
-    H -->|Sí| J[Ingresar Fecha de Nacimiento]
-    J --> K[Calcular Edad Automáticamente]
-    K --> L[Ingresar Peso Actual]
-    L --> M[Determinar Categoría de Peso]
-    M --> N[Seleccionar Cinturón]
-    N --> O[Cargar Lista de Equipos]
-    O --> P[Seleccionar Equipo (Opcional)]
-    P --> Q[Subir Foto (Opcional)]
-    Q --> R[Validar Todos los Campos]
-    R --> S{¿Formulario Válido?}
+    C --> D[🔍 Validar Cédula Única]
+    D --> E{✅ ¿Cédula Disponible?}
     
-    S -->|No| T[Mostrar Errores Específicos]
-    T --> U[Resaltar Campos con Error]
-    U --> V[Enfocar Primer Campo Inválido]
-    V --> E
+    E -->|No| F[❌ Error: Cédula Existente]
+    F --> C2
     
-    S -->|Sí| W[Mostrar Confirmación]
-    W --> X[Enviar Datos a Supabase]
-    X --> Y{¿Guardado Exitoso?}
+    E -->|Sí| G[⚖️ Datos Físicos]
     
-    Y -->|No| Z[Mostrar Error de Conexión]
-    Z --> AA[Opción de Reintentar]
-    AA --> X
+    subgraph DatosFisicos [Datos Físicos]
+        G1[⚖️ Peso Actual]
+        G2[📏 Estatura]
+        G3[🎗️ Cinturón]
+    end
     
-    Y -->|Sí| BB[Revalidar Cache de Atletas]
-    BB --> CC[Mostrar Mensaje de Éxito]
-    CC --> DD[Redireccionar a Lista]
-    DD --> EE[Resaltar Nuevo Atleta]
-    EE --> FF([Fin])
-```
+    G --> H[📊 Calcular Categoría]
+    H --> I{⚠️ ¿Categoría Válida?}
+    
+    I -->|No| J[🎯 Sugerir Categoría]
+    J --> G1
+    
+    I -->|Sí| K[👥 Datos de Equipo]
+    
+    subgraph DatosEquipo [Afiliación]
+        K1[🏢 Seleccionar Equipo]
+        K2[👨‍🏫 Asignar Entrenador]
+        K3[📸 Subir Foto]
+    end
+    
+    K --> L[📋 Validación Completa]
+    L --> M{✅ ¿Todos los Campos Válidos?}
+    
+    M -->|No| N[📍 Resaltar Errores]
+    N --> O[🎯 Enfocar Campo Inválido]
+    O --> C
+    
+    M -->|Sí| P[💾 Guardar en Base de Datos]
+    P --> Q{✅ ¿Guardado Exitoso?}
+    
+    Q -->|No| R[🔴 Error de Conexión]
+    R --> S{🔄 ¿Reintentar?}
+    S -->|Sí| P
+    S -->|No| T[🚪 Cancelar Registro]
+    
+    Q -->|Sí| U[🔄 Actualizar Cache]
+    U --> V[🎉 Mostrar Confirmación]
+    V --> W[📋 Redirigir a Lista]
+    W --> X[⭐ Resaltar Nuevo Registro]
+    X --> Y[✅ Registro Completado]
 
-### ⚡ Proceso de Simulación de Combate en Tiempo Real
 
-Este diagrama detalla el motor de simulación que genera eventos aleatorios y actualiza los puntos en tiempo real mediante WebSockets.
-
-```mermaid
-flowchart TD
-    A([Combate Iniciado]) --> B[Establecer Conexión WebSocket]
-    B --> C[Inicializar Variables de Combate]
-    C --> D[Ronda = 1, Puntos = 0]
-    D --> E[Mostrar Estado Inicial]
-    E --> F[Generar Evento Aleatorio]
-    F --> G{Tipo de Evento}
-    
-    G -->|Golpe Exitoso| H[Calcular Puntos por Técnica]
-    G -->|Bloqueo| I[Sin Puntos, Cambiar Turno]
-    G -->|Técnica Especial| J[Puntos Dobles]
-    
-    H --> K[Actualizar Puntos Atleta]
-    J --> K
-    I --> L[Continuar Simulación]
-    
-    K --> M[Enviar Update via WebSocket]
-    M --> N[Actualizar UI en Tiempo Real]
-    N --> O[Reproducir Sonido/Animación]
-    O --> P{¿Diferencia >= 8 puntos?}
-    
-    P -->|Sí| Q[Victoria por Diferencia]
-    P -->|No| R{¿Tiempo Agotado?}
-    
-    R -->|No| S[Esperar 1-2 segundos]
-    S --> F
-    
-    R -->|Sí| T[Comparar Puntos Finales]
-    T --> U{¿Empate?}
-    
-    U -->|Sí| V[Ronda Extra]
-    V --> F
-    
-    U -->|No| W[Determinar Ganador por Puntos]
-    Q --> X[Finalizar Combate]
-    W --> X
-    
-    X --> Y[Guardar Resultado]
-    Y --> Z[Cerrar WebSocket]
-    Z --> AA([Fin])
-```
-
----
 
 ## 3. 🎭 Diagrama de Casos de Uso
 
@@ -467,91 +378,175 @@ El diagrama de casos de uso identifica las funcionalidades del sistema desde la 
 - **👁️ Espectador**: Usuario que puede visualizar combates y estadísticas sin permisos de modificación
 - **🤖 Sistema**: Procesos automáticos que se ejecutan sin intervención humana
 
-```mermaid
 flowchart TB
-    %% Actores
-    Admin([👤 Administrador])
-    Viewer([👁️ Espectador])
-    System([🤖 Sistema])
-    
-    %% Sistema Principal
-    subgraph SistemaKarate["🥋 Sistema de Gestión de Karate"]
-        
-        %% Casos de Uso Principales
-        subgraph GestionEntidades["📋 Gestión de Entidades"]
-            UC1((Gestionar<br/>Atletas))
-            UC2((Gestionar<br/>Entrenadores))
-            UC3((Gestionar<br/>Jueces))
-            UC4((Gestionar<br/>Equipos))
+    %% Actores del Sistema - Espectador Separado
+    subgraph Actores [👥 ACTORES DEL SISTEMA]
+        Admin[Administrador<br>👤]
+        Entrenador[Entrenador<br>👨‍🏫]
+        Sistema[Sistema Automático<br>🤖]
+        Juez[Juez<br>⚖️]
+        Atleta[Atleta<br>🥋]
+    end
+
+    %% Espectador Separado
+    Espectador[Espectador<br>👀]
+
+    %% Módulo Principal
+    subgraph SistemaPrincipal [🎯 MÓDULOS PRINCIPALES]
+        %% Gestión de Entidades
+        subgraph GestionEntidades [📋 GESTIÓN DE ENTIDADES]
+            UC1[Gestionar Atletas]
+            UC2[Gestionar Entrenadores] 
+            UC3[Gestionar Jueces]
+            UC4[Gestionar Equipos]
         end
-        
-        subgraph GestionCombates["⚔️ Gestión de Combates"]
-            UC5((Crear Combate<br/>Individual))
-            UC6((Crear Combate<br/>por Equipos))
-            UC7((Simular<br/>Combates))
-            UC8((Controlar<br/>Simulación))
+
+        %% Gestión de Combates
+        subgraph GestionCombates [⚔️ GESTIÓN DE COMBATES]
+            subgraph TiposCombate [🔹 Tipos de Combate]
+                UC5[Crear Combate Individual]
+                UC6[Crear Combate por Equipos]
+                UC25[Combate Simulado<br>Automático]
+                UC26[Combate con Juez<br>Humano]
+            end
+            
+            subgraph ControlCombates [🔹 Control de Combates]
+                UC7[Simular Combates]
+                UC8[Controlar Simulación<br>Tiempo Real]
+                UC27[Arbitrar Combate<br>en Vivo]
+                UC28[Registrar Puntuación<br>Manual]
+            end
         end
-        
-        subgraph Visualizacion["📊 Visualización"]
-            UC9((Ver Rankings<br/>y Estadísticas))
-            UC10((Ver Combates<br/>en Vivo))
-            UC11((Generar<br/>Reportes))
+
+        %% Torneos y Competencias
+        subgraph GestionTorneos [🏆 GESTIÓN DE TORNEOS]
+            subgraph OrganizacionTorneos [🔹 Organización]
+                UC9[Organizar Torneo]
+                UC29[Configurar Modalidad<br>Individual/Equipos]
+                UC30[Definir Categorías<br>y Pesos]
+            end
+            
+            subgraph EjecucionTorneos [🔹 Ejecución]
+                UC10[Generar Brackets]
+                UC11[Gestionar Rondas]
+                UC12[Proclamar Ganadores]
+                UC31[Seguimiento en Tiempo Real<br>del Torneo]
+            end
         end
-        
-        subgraph Administracion["⚙️ Administración"]
-            UC12((Administrar<br/>Sistema))
-            UC13((Gestionar<br/>Configuración))
-            UC14((Limpiar<br/>Datos))
+
+        %% Visualización
+        subgraph Visualizacion [📊 VISUALIZACIÓN]
+            UC13[Ver Rankings]
+            UC14[Ver Estadísticas]
+            UC32[Mostrar Victorias]
         end
-        
-        subgraph Secundarios["🔧 Funciones Secundarias"]
-            UC15((Autenticación))
-            UC16((Cambiar Tema))
-            UC17((Exportar Datos))
-            UC18((Sortear<br/>Combates))
-            UC19((Backup<br/>Automático))
+
+        %% Administración del Sistema
+        subgraph Administracion [⚙️ ADMINISTRACIÓN]
+            UC17[Gestionar Usuarios]
+            UC18[Configurar Sistema]
+            UC19[Backup de Datos]
+            UC20[Ver Logs del Sistema]
         end
     end
+
+    %% Funciones de Soporte
+    subgraph FuncionesSoporte [🔧 FUNCIONES DE SOPORTE]
+        UC21[Autenticación y<br>Autorización]
+        UC22[Gestión de Perfiles]
+        UC24[Gestión de Archivos]
+    end
+
+    %% Relaciones de Actores - Mejor Organizadas
+    Admin --> UC1 & UC2 & UC3 & UC4
+    Admin --> UC5 & UC6 & UC25 & UC26
+    Admin --> UC9 & UC29 & UC30
+    Admin --> UC17 & UC18 & UC19 & UC20
+
+    Entrenador --> UC1 & UC4
+    Entrenador --> UC13 & UC14 & UC32
+    Entrenador --> UC25 & UC7
+
+    Sistema --> UC7 & UC19 & UC25
     
-    %% Relaciones Administrador
-    Admin -.-> UC1
-    Admin -.-> UC2
-    Admin -.-> UC3
-    Admin -.-> UC4
-    Admin -.-> UC5
-    Admin -.-> UC6
-    Admin -.-> UC7
-    Admin -.-> UC8
-    Admin -.-> UC11
-    Admin -.-> UC12
-    Admin -.-> UC13
-    Admin -.-> UC14
-    Admin -.-> UC15
-    Admin -.-> UC18
+    Juez --> UC26
+    Juez --> UC27
+    Juez --> UC28
     
-    %% Relaciones Espectador
-    Viewer -.-> UC9
-    Viewer -.-> UC10
-    Viewer -.-> UC16
+    Atleta --> UC13 & UC14 & UC32
+
+    %% Relaciones del Espectador - Separadas y Claras
+    Espectador --> UC13
+    Espectador --> UC14
+    Espectador --> UC32
+    Espectador --> UC7
+    Espectador --> UC31
+
+    %% Relaciones entre Casos de Uso - Flechas Mejoradas
+    %% Relaciones de Combates
+    UC5 -.->|tipo de| UC7
+    UC6 -.->|tipo de| UC7
+    UC25 -.->|tipo de| UC7
+    UC26 -.->|tipo de| UC7
     
-    %% Relaciones Sistema
-    System -.-> UC7
-    System -.-> UC17
-    System -.-> UC19
+    UC7 -.->|modo de| UC8
+    UC7 -.->|modo de| UC27
+    UC27 -.->|requiere| UC28
     
-    %% Relaciones entre Casos de Uso
-    UC5 -.->|<<extends>>| UC7
-    UC6 -.->|<<extends>>| UC7
-    UC7 -.->|<<includes>>| UC8
-    UC12 -.->|<<includes>>| UC15
-    UC1 -.->|<<includes>>| UC15
-    UC2 -.->|<<includes>>| UC15
-    UC3 -.->|<<includes>>| UC15
-    UC4 -.->|<<includes>>| UC15
-    UC11 -.->|<<includes>>| UC17
-    UC18 -.->|<<includes>>| UC5
-    UC18 -.->|<<includes>>| UC6
-```
+    %% Relaciones de Torneos
+    UC9 -.->|configura| UC29
+    UC9 -.->|configura| UC30
+    UC9 -.->|incluye| UC10
+    UC9 -.->|incluye| UC11
+    UC9 -.->|incluye| UC12
+    UC9 -.->|incluye| UC31
+    
+    UC10 -.->|genera| UC11
+    UC11 -.->|determina| UC12
+    
+    %% Relaciones de Soporte
+    UC17 -.->|incluye| UC21
+    UC1 -.->|incluye| UC21
+    UC2 -.->|incluye| UC21
+    UC3 -.->|incluye| UC21
+    UC4 -.->|incluye| UC21
+    
+    UC21 -.->|incluye| UC22
+    UC1 -.->|incluye| UC24
+
+    %% Flujo entre Módulos Principales
+    GestionEntidades ==> GestionCombates
+    GestionCombates ==> GestionTorneos
+    GestionTorneos ==> Visualizacion
+
+    %% Estilos Dark Mode Mejorados
+    classDef mainTitleStyle fill:#2d3748,stroke:#4a5568,stroke-width:3px,color:#fff,font-weight:bold,font-size:15px
+    classDef sectionTitleStyle fill:#4a5568,stroke:#718096,stroke-width:2px,color:#fff,font-weight:bold,font-size:13px
+    classDef subsectionStyle fill:#718096,stroke:#a0aec0,stroke-width:1.5px,color:#fff,font-weight:normal,font-size:11px
+    classDef actorStyle fill:#2d3748,stroke:#4299e1,stroke-width:2px,color:#fff,font-weight:bold,font-size:11px
+    classDef spectatorStyle fill:#744210,stroke:#ed8936,stroke-width:2px,color:#fff,font-weight:bold,font-size:11px
+    classDef primaryUseCase fill:#1a365d,stroke:#2b6cb0,stroke-width:1.5px,color:#fff,font-size:10px
+    classDef secondaryUseCase fill:#22543d,stroke:#38a169,stroke-width:1.5px,color:#fff,font-size:10px
+    classDef supportUseCase fill:#521b41,stroke:#b83280,stroke-width:1.5px,color:#fff,font-size:9px
+    classDef newFeatureStyle fill:#234e52,stroke:#319795,stroke-width:1.5px,color:#fff,font-size:9px
+    
+    %% Aplicar estilos a títulos principales
+    class Actores,SistemaPrincipal,FuncionesSoporte mainTitleStyle
+    class GestionEntidades,GestionCombates,GestionTorneos,Visualizacion,Administracion sectionTitleStyle
+    class TiposCombate,ControlCombates,OrganizacionTorneos,EjecucionTorneos subsectionStyle
+    
+    class Admin,Entrenador,Sistema,Juez,Atleta actorStyle
+    class Espectador spectatorStyle
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10,UC11,UC12 primaryUseCase
+    class UC13,UC14,UC17,UC18,UC19,UC20,UC32 secondaryUseCase
+    class UC21,UC22,UC24 supportUseCase
+    class UC25,UC26,UC27,UC28,UC29,UC30,UC31 newFeatureStyle
+
+    %% Configuración general del gráfico
+    linkStyle default stroke:#a0aec0,stroke-width:1.5px
+    linkStyle 30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49 stroke-dasharray:5 5,stroke:#e2e8f0
+    linkStyle 50,51,52 stroke:#68d391,stroke-width:2px
+    linkStyle 25,26,27,28,29 stroke:#f6ad55,stroke-width:2px
 
 ### 📊 Especificación Detallada de Casos de Uso
 
