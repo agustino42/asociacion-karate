@@ -2,7 +2,7 @@
 
 ## 📋 Descripción del Sistema
 
-Sistema web integral de gestión para asociaciones de karate desarrollado con tecnologías de vanguardia.
+Sistema web integral de gestión para asociaciones de karate .. sub proyecto desarrollo de aplicaciones 2 .. profesor Franklin españa.
 
 ### Stack Tecnológico
 - **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
@@ -17,8 +17,8 @@ Sistema web integral de gestión para asociaciones de karate desarrollado con te
 
 ```mermaid
 classDiagram
-    class Usuario {
-        <<Abstract>>
+    class Administrador {
+        <<administrador>>
         -UUID id
         -string nombre
         -string apellido
@@ -72,7 +72,7 @@ classDiagram
     }
 
     class Combate {
-        <<Abstract>>
+        <<combates>>
         -UUID id
         -string estado
         -UUID juez_id
