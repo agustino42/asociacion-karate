@@ -45,9 +45,11 @@ interface CombateCampeonato {
   estado: 'pendiente' | 'en_curso' | 'finalizado'
   ronda: number
   posicion: number
-  combate_db_id?: number // ID del combate en la base de datos
+  combate_db_id?: number
+  puntos_atleta1?: number
+  puntos_atleta2?: number
 }
-// componente principal de la pagina o funciones y mas f
+// componente principal de la pagina o funciones y mas funcionalidades
 const CampeonatosPage = () => {
   const router = useRouter()
   const supabase = getSupabaseBrowserClient()
@@ -136,13 +138,14 @@ const CampeonatosPage = () => {
         return
       }
 
-      // Crear combate en la base de datos (sin juez_id si no existe la columna)
+      // Crear combate en la base de datos con identificador de campeonato
+      const rondaNombre = combate.ronda === 1 ? 'Primera Ronda' : combate.ronda === 2 ? 'Semifinal' : 'Final'
       const { data: combateCreado, error } = await supabase
         .from('combates_individuales')
         .insert({
           atleta1_id: combate.atleta1.id,
           atleta2_id: combate.atleta2.id,
-          categoria: combate.atleta1.categoria || 'Senior',
+          categoria: `Campeonato - ${rondaNombre} (${combate.atleta1.categoria || 'Senior'})`,
           duracion_minutos: 3,
           estado: 'en_curso'
         })
@@ -189,6 +192,9 @@ const CampeonatosPage = () => {
           ganador:atletas!combates_individuales_ganador_id_fkey(*)
         `)
         .or('estado.eq.finalizado,estado.eq.en_curso')
+        .like('categoria', 'Campeonato%')
+      
+      console.log('Combates de Campeonato en BD:', combatesDB?.length || 0)
 
       if (combatesDB && combatesDB.length > 0) {
         let huboActualizacion = false
@@ -213,57 +219,81 @@ const CampeonatosPage = () => {
             }
 
             // Si el combate está finalizado y tiene ganador
-            if (combateDB.estado === 'finalizado' && combateDB.ganador && combate.estado !== 'finalizado') {
-              huboActualizacion = true
+            if (combateDB.estado === 'finalizado' && combateDB.ganador_id) {
+              const ganadorData = combateDB.ganador || 
+                (combateDB.ganador_id === combateDB.atleta1?.id ? combateDB.atleta1 : combateDB.atleta2)
+              
+              if (combate.estado !== 'finalizado' || !combate.ganador) {
+                huboActualizacion = true
 
-              const combateActualizado = {
-                ...combate,
-                ganador: combateDB.ganador,
-                estado: 'finalizado' as const,
-                combate_db_id: combateDB.id
-              }
-
-              // Avanzar ganador a siguiente ronda con animación
-              if (combate.ronda < 3) {
-                const siguienteRonda = combate.ronda + 1
-                const siguientePosicion = Math.ceil(combate.posicion / 2)
+                const combateActualizado = {
+                  ...combate,
+                  ganador: ganadorData,
+                  estado: 'finalizado' as const,
+                  combate_db_id: combateDB.id,
+                  puntos_atleta1: combateDB.puntos_atleta1 || 0,
+                  puntos_atleta2: combateDB.puntos_atleta2 || 0
+                }
+                
+                console.log(`Combate R${combate.ronda}-${combate.posicion} finalizado. Ganador: ${ganadorData.nombre} ${ganadorData.apellido} (${combateDB.puntos_atleta1 || 0}-${combateDB.puntos_atleta2 || 0})`)
 
                 // Mostrar animación de ganador avanzando
-                setAnimatingWinner({ ronda: combate.ronda, posicion: combate.posicion })
+                if (combate.ronda < 3 && ganadorData) {
+                  setAnimatingWinner({ ronda: combate.ronda, posicion: combate.posicion })
+                  setTimeout(() => setAnimatingWinner(null), 2000)
+                }
 
-                // Programar actualización de siguiente ronda
-                setTimeout(() => {
-                  setCombates(prev => prev.map(c => {
-                    if (c.ronda === siguienteRonda && c.posicion === siguientePosicion) {
-                      if (combate.posicion % 2 === 1) {
-                        return { ...c, atleta1: combateDB.ganador }
-                      } else {
-                        return { ...c, atleta2: combateDB.ganador }
-                      }
-                    }
-                    return c
-                  }))
-
-                  // Quitar animación después de 2 segundos
-                  setTimeout(() => {
-                    setAnimatingWinner(null)
-                  }, 2000)
-                }, 1000)
+                return combateActualizado
               }
-
-              return combateActualizado
             }
           }
 
           return combate
         })
 
+        // Avanzar ganadores a siguiente ronda
+        const combatesConAvance = combatesActualizados.map(combate => {
+          // Si es semifinal o final y no tiene atletas, buscar ganadores de ronda anterior
+          if (combate.ronda > 1 && (!combate.atleta1 || !combate.atleta2)) {
+            const posicionBase = (combate.posicion - 1) * 2 + 1
+            const combatesPrevios = combatesActualizados.filter(c => 
+              c.ronda === combate.ronda - 1 && 
+              (c.posicion === posicionBase || c.posicion === posicionBase + 1)
+            )
+            
+            console.log(`Buscando ganadores para R${combate.ronda}-${combate.posicion}:`, 
+              combatesPrevios.map(c => `R${c.ronda}-${c.posicion}: ${c.ganador ? c.ganador.nombre : 'Sin ganador'}`))
+            
+            let nuevoAtleta1 = combate.atleta1
+            let nuevoAtleta2 = combate.atleta2
+            
+            // Asignar ganadores a los slots correspondientes
+            combatesPrevios.forEach(cp => {
+              if (cp.ganador) {
+                if (cp.posicion === posicionBase && !nuevoAtleta1) {
+                  nuevoAtleta1 = cp.ganador
+                  console.log(`✅ Asignando ${cp.ganador.nombre} a atleta1 de R${combate.ronda}-${combate.posicion}`)
+                } else if (cp.posicion === posicionBase + 1 && !nuevoAtleta2) {
+                  nuevoAtleta2 = cp.ganador
+                  console.log(`✅ Asignando ${cp.ganador.nombre} a atleta2 de R${combate.ronda}-${combate.posicion}`)
+                }
+              }
+            })
+            
+            if (nuevoAtleta1 !== combate.atleta1 || nuevoAtleta2 !== combate.atleta2) {
+              huboActualizacion = true
+              return { ...combate, atleta1: nuevoAtleta1, atleta2: nuevoAtleta2 }
+            }
+          }
+          return combate
+        })
+        
         // Solo actualizar si hubo cambios
         if (huboActualizacion) {
-          setCombates(combatesActualizados)
+          setCombates(combatesConAvance)
 
           // Mostrar notificación de actualización
-          const combatesFin = combatesActualizados.filter(c => c.estado === 'finalizado')
+          const combatesFin = combatesConAvance.filter(c => c.estado === 'finalizado')
           if (combatesFin.length > combates.filter(c => c.estado === 'finalizado').length) {
             // Nuevo combate finalizado
             const ultimoFinalizado = combatesFin[combatesFin.length - 1]
@@ -278,21 +308,28 @@ const CampeonatosPage = () => {
     }
   }
 
-  // Actualizar bracket cada 2 segundos para tiempo real
+  // Actualizar bracket cada 3 segundos para tiempo real
   useEffect(() => {
-    const interval = setInterval(actualizarBracket, 2000)
+    const interval = setInterval(() => {
+      actualizarBracket()
+    }, 3000)
     return () => clearInterval(interval)
   }, [combates])
 
   // Actualizar bracket cuando la ventana recibe foco (cuando vuelves de un combate)
   useEffect(() => {
     const handleFocus = () => {
+      console.log('Ventana enfocada - actualizando bracket...')
       actualizarBracket()
     }
 
     window.addEventListener('focus', handleFocus)
+    
+    // Actualizar inmediatamente al montar
+    actualizarBracket()
+    
     return () => window.removeEventListener('focus', handleFocus)
-  }, [])
+  }, [combates])
 
   const asignarAtleta = (ronda: number, posicion: number, atleta: Atleta, esAtleta1: boolean) => {
     setCombates(prev => prev.map(c =>
@@ -345,6 +382,37 @@ const CampeonatosPage = () => {
 
   const CombateCard = ({ combate }: { combate: CombateCampeonato }) => {
     const puedeIniciar = combate.atleta1 && combate.atleta2 && combate.juez
+    
+    // Verificar si este combate está esperando un ganador de ronda anterior
+    const esperandoRival = combate.ronda > 1 && (!combate.atleta1 || !combate.atleta2)
+    
+    // Obtener combates previos que alimentan este combate
+    const getCombatesPrevios = () => {
+      if (combate.ronda === 1) return []
+      const posicionBase = (combate.posicion - 1) * 2 + 1
+      return combates.filter(c => 
+        c.ronda === combate.ronda - 1 && 
+        (c.posicion === posicionBase || c.posicion === posicionBase + 1)
+      )
+    }
+    
+    const combatesPrevios = getCombatesPrevios()
+    
+    // Obtener ganadores disponibles de la ronda anterior desde el estado local
+    const ganadoresLocales = combate.ronda === 1 ? atletas : combatesPrevios
+      .filter(c => c.ganador)
+      .map(c => c.ganador!)
+    
+    // Debug: mostrar ganadores disponibles
+    if (combate.ronda > 1 && ganadoresLocales.length === 0) {
+      console.log(`Combate R${combate.ronda}-${combate.posicion}: Esperando ganadores de R${combate.ronda - 1}`)
+      console.log('Combates previos:', combatesPrevios.map(c => ({
+        ronda: c.ronda,
+        posicion: c.posicion,
+        estado: c.estado,
+        ganador: c.ganador ? `${c.ganador.nombre} ${c.ganador.apellido}` : 'Sin ganador'
+      })))
+    }
 
     return (
       <Card className={`
@@ -357,14 +425,14 @@ const CampeonatosPage = () => {
           ? 'bg-linear-to-br from-emerald-900/50 to-green-800/50 border-emerald-600 shadow-emerald-900/50'
           : combate.estado === 'en_curso'
             ? 'bg-linear-to-br from-blue-900/50 to-indigo-800/50 border-blue-600 shadow-blue-900/50 animate-pulse'
-            : 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-600 hover:border-blue-500'
+            : 'bg-linear-to-br from-gray-800 to-gray-900 border-gray-600 hover:border-blue-500'
         }
         border-2 shadow-xl hover:shadow-2xl w-full max-w-xs mx-auto
       `}>
         {/* Estado visual indicator */}
-        <div className={`absolute top-0 left-0 w-full h-1 ${combate.estado === 'finalizado' ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
-          combate.estado === 'en_curso' ? 'bg-gradient-to-r from-blue-400 to-indigo-500' :
-            'bg-gradient-to-r from-gray-300 to-gray-400'
+        <div className={`absolute top-0 left-0 w-full h-1 ${combate.estado === 'finalizado' ? 'bg-linear-to-r from-emerald-400 to-green-500' :
+          combate.estado === 'en_curso' ? 'bg-linear-to-r from-blue-400 to-indigo-500' :
+            'bg-linear-to-r from-gray-300 to-gray-400'
           }`} />
 
         <CardHeader className="pb-2">
@@ -381,105 +449,208 @@ const CampeonatosPage = () => {
         </CardHeader>
 
         <CardContent className="space-y-3 text-white">
-          {/* Atletas */}
-          <div className="space-y-3">
-            {/* Atleta 1 (Azul) */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold flex items-center gap-1 text-blue-400">
-                <Users className="h-3 w-3" />
-                Atleta Azul:
-              </label>
-              <Select
-                value={combate.atleta1?.id?.toString() || ''}
-                onValueChange={(value) => {
-                  const atleta = atletas.find(a => a.id.toString() === value)
-                  if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, true)
-                }}
-              >
-                <SelectTrigger className="h-10 text-xs border-2 transition-colors border-blue-600 hover:border-blue-500 bg-gray-800 text-white">
-                  <SelectValue placeholder="🥋 Atleta azul" />
-                </SelectTrigger>
-                <SelectContent>
-                  {atletas.filter(a =>
-                    // Filtrar atletas ya asignados en otros combates
-                    !combates.some(c =>
-                      (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
-                        c.atleta1?.id === a.id || c.atleta2?.id === a.id
-                    )
-                  ).map(atleta => (
-                    <SelectItem key={atleta.id} value={atleta.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-500" />
-                        <span>{atleta.nombre} {atleta.apellido}</span>
-                        <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* VS Divider */}
-            <div className="relative">
-              <Separator />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-gray-700 px-2 py-1 rounded-full border-2 border-orange-400 text-xs font-bold text-orange-300">
-                  <Swords className="h-3 w-3 inline mr-1" />
-                  VS
-                </div>
+          {/* Atletas - Solo selector en Primera Ronda */}
+          {combate.ronda === 1 ? (
+            <div className="space-y-3">
+              {/* Atleta 1 (Azul) */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold flex items-center gap-1 text-blue-400">
+                  <Users className="h-3 w-3" />
+                  Atleta Azul:
+                </label>
+                <Select
+                  value={combate.atleta1?.id?.toString() || ''}
+                  onValueChange={(value) => {
+                    const atleta = atletas.find(a => a.id.toString() === value)
+                    if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, true)
+                  }}
+                >
+                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-blue-600 hover:border-blue-500 bg-gray-800 text-white">
+                    <SelectValue placeholder="🥋 Atleta azul" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {atletas.filter(a =>
+                      !combates.some(c =>
+                        (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
+                          c.atleta1?.id === a.id || c.atleta2?.id === a.id
+                      )
+                    ).map(atleta => (
+                      <SelectItem key={atleta.id} value={atleta.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-blue-500" />
+                          <span>{atleta.nombre} {atleta.apellido}</span>
+                          <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
 
-            {/* Atleta 2 (Rojo) */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold flex items-center gap-1 text-red-400">
-                <Users className="h-3 w-3" />
-                Atleta Rojo:
-              </label>
-              <Select
-                value={combate.atleta2?.id?.toString() || ''}
-                onValueChange={(value) => {
-                  const atleta = atletas.find(a => a.id.toString() === value)
-                  if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, false)
-                }}
-              >
-                <SelectTrigger className="h-10 text-xs border-2 transition-colors border-red-600 hover:border-red-500 bg-gray-800 text-white">
-                  <SelectValue placeholder="🥋 Atleta rojo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {atletas.filter(a =>
-                    // Filtrar atletas ya asignados en otros combates
-                    !combates.some(c =>
-                      (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
-                        c.atleta1?.id === a.id || c.atleta2?.id === a.id
-                    ) && a.id !== combate.atleta1?.id // No puede ser el mismo que atleta1
-                  ).map(atleta => (
-                    <SelectItem key={atleta.id} value={atleta.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500" />
-                        <span>{atleta.nombre} {atleta.apellido}</span>
-                        <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Ganador */}
-          {combate.ganador && (
-            <div className="bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 rounded-xl p-4 animate-in slide-in-from-top duration-500">
-              <div className="flex items-center gap-3">
-                <div className="bg-yellow-500 p-2 rounded-full">
-                  <Crown className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <div className="text-xs text-yellow-700 font-medium">🏆 GANADOR</div>
-                  <div className="font-bold text-yellow-900">
-                    {combate.ganador.nombre} {combate.ganador.apellido}
+              {/* VS Divider */}
+              <div className="relative">
+                <Separator />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-gray-700 px-2 py-1 rounded-full border-2 border-orange-400 text-xs font-bold text-orange-300">
+                    <Swords className="h-3 w-3 inline mr-1" />
+                    VS
                   </div>
                 </div>
+              </div>
+
+              {/* Atleta 2 (Rojo) */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold flex items-center gap-1 text-red-400">
+                  <Users className="h-3 w-3" />
+                  Atleta Rojo:
+                </label>
+                <Select
+                  value={combate.atleta2?.id?.toString() || ''}
+                  onValueChange={(value) => {
+                    const atleta = atletas.find(a => a.id.toString() === value)
+                    if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, false)
+                  }}
+                >
+                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-red-600 hover:border-red-500 bg-gray-800 text-white">
+                    <SelectValue placeholder="🥋 Atleta rojo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {atletas.filter(a =>
+                      !combates.some(c =>
+                        (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
+                          c.atleta1?.id === a.id || c.atleta2?.id === a.id
+                      ) && a.id !== combate.atleta1?.id
+                    ).map(atleta => (
+                      <SelectItem key={atleta.id} value={atleta.id.toString()}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500" />
+                          <span>{atleta.nombre} {atleta.apellido}</span>
+                          <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ) : (
+            /* Semifinales y Final - Solo mostrar ganadores */
+            <div className="space-y-3">
+              {/* Atleta 1 (Azul) - Ganador clasificado */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold flex items-center gap-1 text-blue-400">
+                  <Crown className="h-3 w-3" />
+                  Clasificado Azul:
+                </label>
+                {combate.atleta1 ? (
+                  <div className="h-10 px-3 py-2 rounded-md border-2 border-blue-600 bg-linear-to-r from-blue-900/50 to-blue-800/50 text-white flex items-center gap-2 animate-in slide-in-from-left duration-500">
+                    <Crown className="h-3 w-3 text-yellow-500 animate-bounce" />
+                    <span className="text-xs font-bold">{combate.atleta1.nombre} {combate.atleta1.apellido}</span>
+                    <Badge variant="outline" className="text-xs ml-auto bg-yellow-500/20">{combate.atleta1.cinturon}</Badge>
+                  </div>
+                ) : (
+                  <div className="h-10 px-3 py-2 rounded-md border-2 border-blue-600/50 bg-gray-800/50 text-gray-400 flex items-center justify-center">
+                    <span className="text-xs">⏳ Esperando ganador...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* VS Divider */}
+              <div className="relative">
+                <Separator />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-gray-700 px-2 py-1 rounded-full border-2 border-orange-400 text-xs font-bold text-orange-300">
+                    <Swords className="h-3 w-3 inline mr-1" />
+                    VS
+                  </div>
+                </div>
+              </div>
+
+              {/* Atleta 2 (Rojo) - Ganador clasificado */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold flex items-center gap-1 text-red-400">
+                  <Crown className="h-3 w-3" />
+                  Clasificado Rojo:
+                </label>
+                {combate.atleta2 ? (
+                  <div className="h-10 px-3 py-2 rounded-md border-2 border-red-600 bg-linear-to-r from-red-900/50 to-red-800/50 text-white flex items-center gap-2 animate-in slide-in-from-right duration-500">
+                    <Crown className="h-3 w-3 text-yellow-500 animate-bounce" />
+                    <span className="text-xs font-bold">{combate.atleta2.nombre} {combate.atleta2.apellido}</span>
+                    <Badge variant="outline" className="text-xs ml-auto bg-yellow-500/20">{combate.atleta2.cinturon}</Badge>
+                  </div>
+                ) : (
+                  <div className="h-10 px-3 py-2 rounded-md border-2 border-red-600/50 bg-gray-800/50 text-gray-400 flex items-center justify-center">
+                    <span className="text-xs">⏳ Esperando ganador...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Ganador o Estado de Avance */}
+          {combate.ganador ? (
+            <div className="space-y-2">
+              <div className="bg-linear-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 rounded-xl p-3 animate-in slide-in-from-top duration-500">
+                <div className="flex items-center gap-2">
+                  <div className="bg-yellow-500 p-2 rounded-full">
+                    <Crown className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs text-yellow-700 font-medium">🏆 GANADOR - AVANZA</div>
+                    <div className="font-bold text-yellow-900 text-sm">
+                      {combate.ganador.nombre} {combate.ganador.apellido}
+                    </div>
+                    {combate.ronda < 3 && (
+                      <div className="text-xs text-yellow-600 mt-1">
+                        ➜ Pasa a {combate.ronda === 1 ? 'Semifinal' : 'Final'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/* Marcador Final */}
+              {(combate.puntos_atleta1 !== undefined || combate.puntos_atleta2 !== undefined) && (
+                <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-2">
+                  <div className="text-xs text-gray-400 text-center mb-1">Marcador Final</div>
+                  <div className="flex justify-center items-center gap-3">
+                    <div className="text-center">
+                      <div className="text-xs text-blue-400 mb-1">Azul</div>
+                      <div className={`text-2xl font-bold ${
+                        combate.ganador.id === combate.atleta1?.id ? 'text-green-400' : 'text-gray-500'
+                      }`}>
+                        {combate.puntos_atleta1 || 0}
+                      </div>
+                    </div>
+                    <div className="text-gray-500 text-xl">-</div>
+                    <div className="text-center">
+                      <div className="text-xs text-red-400 mb-1">Rojo</div>
+                      <div className={`text-2xl font-bold ${
+                        combate.ganador.id === combate.atleta2?.id ? 'text-green-400' : 'text-gray-500'
+                      }`}>
+                        {combate.puntos_atleta2 || 0}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : esperandoRival && (
+            <div className="bg-linear-to-r from-blue-900/30 to-indigo-900/30 border-2 border-blue-500/50 rounded-xl p-3 animate-pulse">
+              <div className="text-center">
+                <div className="text-xs text-blue-300 font-medium mb-2">⏳ ESPERANDO CLASIFICADOS</div>
+                {combatesPrevios.map((cp, idx) => (
+                  <div key={idx} className="text-xs text-gray-300 mb-1">
+                    {cp.ganador ? (
+                      <span className="text-green-400 flex items-center justify-center gap-1">
+                        ✓ {cp.ganador.nombre} {cp.ganador.apellido}
+                      </span>
+                    ) : cp.estado === 'en_curso' ? (
+                      <span className="text-yellow-400">🔥 Combate en curso...</span>
+                    ) : (
+                      <span className="text-gray-400">⏳ Pendiente R{cp.ronda}-{cp.posicion}</span>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -526,7 +697,7 @@ const CampeonatosPage = () => {
               disabled={!puedeIniciar}
               size="lg"
               className={`w-full h-12 text-sm font-bold transition-all duration-300 ${puedeIniciar
-                ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                ? 'bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                 : 'bg-gray-400 cursor-not-allowed opacity-60'
                 }`}
             >
@@ -566,7 +737,7 @@ const CampeonatosPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-gray-900 via-slate-900 to-black flex items-center justify-center">
         <div className="text-center">
           <div className="text-2xl font-bold mb-4">Cargando Campeonato...</div>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -576,17 +747,17 @@ const CampeonatosPage = () => {
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-900 via-slate-900 to-black">
+    <div className="min-h-screen transition-colors duration-300 bg-linear-to-br from-gray-900 via-slate-900 to-black">
       {/* Header Mejorado */}
       <div className="sticky top-0 z-40 backdrop-blur-lg border-b shadow-sm bg-gray-900/80 border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg">
+              <div className="bg-linear-to-r from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg">
                 <Trophy className="h-8 w-8 text-white" />
               </div>
               <div className="text-center sm:text-left">
-                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   🥋 Campeonato de Karate
                 </h1>
                 <p className="text-sm text-gray-400">
@@ -612,12 +783,23 @@ const CampeonatosPage = () => {
               {/* Botones de control */}
               <div className="flex gap-2">
                 <Button
+                  onClick={() => {
+                    actualizarBracket()
+                    console.log('Actualización manual del bracket')
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-900/20 border-blue-600 text-blue-400 hover:bg-blue-900/40"
+                >
+                  🔄 Actualizar
+                </Button>
+                <Button
                   onClick={reiniciarCampeonato}
                   variant="outline"
                   size="sm"
                   className="bg-red-900/20 border-red-600 text-red-400 hover:bg-red-900/40"
                 >
-                  🔄 Reiniciar
+                  🗑️ Reiniciar
                 </Button>
               </div>
 
@@ -666,7 +848,7 @@ const CampeonatosPage = () => {
                   {/* PRIMERA RONDA */}
                   <div className="space-y-6 sm:space-y-12">
                     <div className="text-center mb-4 sm:mb-6">
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full inline-block mb-2">
+                      <div className="bg-linear-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full inline-block mb-2">
                         <h3 className="font-bold text-sm sm:text-xl">Primera Ronda</h3>
                       </div>
                       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -688,8 +870,8 @@ const CampeonatosPage = () => {
                       return (
                         <div key={i} className="h-40 flex items-center">
                           <div className={`w-full h-1 rounded transition-all duration-1000 ${isAnimating
-                            ? 'bg-gradient-to-r from-yellow-400 to-amber-400 h-2 animate-pulse shadow-lg shadow-yellow-400/50'
-                            : 'bg-gradient-to-r from-blue-300 to-indigo-300 animate-pulse'
+                            ? 'bg-linear-to-r from-yellow-400 to-amber-400 h-2 animate-pulse shadow-lg shadow-yellow-400/50'
+                            : 'bg-linear-to-r from-blue-300 to-indigo-300 animate-pulse'
                             }`}></div>
                           <ChevronRight className={`h-6 w-6 mx-2 transition-all duration-500 ${isAnimating ? 'text-yellow-500 animate-bounce scale-125' : 'text-blue-500'
                             }`} />
@@ -701,7 +883,7 @@ const CampeonatosPage = () => {
                   {/* SEMIFINALES */}
                   <div className="space-y-12 sm:space-y-24">
                     <div className="text-center mb-4 sm:mb-6">
-                      <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full inline-block mb-2">
+                      <div className="bg-linear-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full inline-block mb-2">
                         <h3 className="font-bold text-sm sm:text-xl">Semifinales</h3>
                       </div>
                       <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -723,8 +905,8 @@ const CampeonatosPage = () => {
                       return (
                         <div key={i} className="h-40 flex items-center">
                           <div className={`w-full h-1 rounded transition-all duration-1000 ${isAnimating
-                            ? 'bg-gradient-to-r from-yellow-400 to-amber-400 h-2 animate-pulse shadow-lg shadow-yellow-400/50'
-                            : 'bg-gradient-to-r from-orange-300 to-red-300 animate-pulse'
+                            ? 'bg-linear-to-r from-yellow-400 to-amber-400 h-2 animate-pulse shadow-lg shadow-yellow-400/50'
+                            : 'bg-linear-to-r from-orange-300 to-red-300 animate-pulse'
                             }`}></div>
                           <ChevronRight className={`h-6 w-6 mx-2 transition-all duration-500 ${isAnimating ? 'text-yellow-500 animate-bounce scale-125' : 'text-orange-500'
                             }`} />
@@ -736,7 +918,7 @@ const CampeonatosPage = () => {
                   {/* FINAL */}
                   <div className="flex flex-col items-center justify-center">
                     <div className="text-center mb-6 sm:mb-10">
-                      <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-6 py-3 rounded-full inline-block mb-3 shadow-lg">
+                      <div className="bg-linear-to-r from-yellow-500 to-amber-500 text-white px-6 py-3 rounded-full inline-block mb-3 shadow-lg">
                         <h3 className="font-bold text-lg sm:text-2xl flex items-center gap-2">
                           <Crown className="h-5 w-5 sm:h-6 w-6" />
                           FINAL
@@ -755,8 +937,8 @@ const CampeonatosPage = () => {
                   {/* CONECTORES 3 */}
                   <div className="hidden sm:flex items-center justify-center">
                     <div className={`w-full h-2 rounded-full shadow-lg transition-all duration-1000 ${animatingWinner?.ronda === 3 && animatingWinner?.posicion === 1
-                      ? 'bg-gradient-to-r from-yellow-400 to-yellow-300 h-4 animate-pulse shadow-2xl shadow-yellow-400/75'
-                      : 'bg-gradient-to-r from-yellow-400 to-amber-400 animate-pulse'
+                      ? 'bg-linear-to-r from-yellow-400 to-yellow-300 h-4 animate-pulse shadow-2xl shadow-yellow-400/75'
+                      : 'bg-linear-to-r from-yellow-400 to-amber-400 animate-pulse'
                       }`}></div>
                     <ChevronRight className={`h-8 w-8 mx-2 transition-all duration-500 ${animatingWinner?.ronda === 3 ? 'text-yellow-300 animate-bounce scale-150' : 'text-yellow-500'
                       }`} />
@@ -765,15 +947,15 @@ const CampeonatosPage = () => {
                   {/* CAMPEÓN */}
                   <div className="flex flex-col items-center justify-center">
                     <div className="text-center">
-                      <div className="bg-gradient-to-r from-yellow-500 to-amber-500 text-white px-6 py-2 rounded-full mb-4 shadow-lg">
+                      <div className="bg-linear-to-r from-yellow-500 to-amber-500 text-white px-6 py-2 rounded-full mb-4 shadow-lg">
                         <h3 className="font-bold text-xl sm:text-2xl flex items-center gap-2 justify-center">
                           <Crown className="h-6 w-6" />
                           CAMPEÓN
                         </h3>
                       </div>
                       <div className={`p-6 sm:p-8 rounded-2xl shadow-2xl border-4 transition-all duration-1000 ${ronda3[0]?.ganador
-                        ? 'bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 border-yellow-300 animate-bounce scale-110 shadow-2xl shadow-yellow-400/50'
-                        : 'bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 border-yellow-300 animate-pulse'
+                        ? 'bg-linear-to-br from-yellow-400 via-amber-400 to-orange-400 border-yellow-300 animate-bounce scale-110 shadow-2xl shadow-yellow-400/50'
+                        : 'bg-linear-to-br from-yellow-400 via-amber-400 to-orange-400 border-yellow-300 animate-pulse'
                         }`}>
                         <Trophy className={`mx-auto mb-4 drop-shadow-lg text-white transition-all duration-500 ${ronda3[0]?.ganador ? 'h-20 w-20 sm:h-24 w-24 animate-spin' : 'h-16 w-16 sm:h-20 w-20'
                           }`} />
@@ -852,7 +1034,7 @@ const CampeonatosPage = () => {
                 {/* Campeón */}
                 {ronda3[0]?.ganador && (
                   <div className="text-center py-8">
-                    <div className="bg-gradient-to-r from-yellow-400 to-amber-400 p-6 rounded-2xl shadow-xl inline-block">
+                    <div className="bg-linear-to-r from-yellow-400 to-amber-400 p-6 rounded-2xl shadow-xl inline-block">
                       <Trophy className="h-16 w-16 text-white mx-auto mb-2" />
                       <div className="text-white">
                         <div className="font-bold text-xl">🏆 CAMPEÓN</div>

@@ -228,8 +228,8 @@ function JuecesControlPanel({
     setShowWinnerDialog(true)
     setIsRunning(false)
     
-    // Si es un combate de campeonato, actualizar la base de datos automáticamente
-    if (combateData && combateData.tipo === 'campeonato') {
+    // Si hay combateData, actualizar la base de datos automáticamente
+    if (combateData) {
       await finalizarCombateCampeonato(ganador, reason)
     }
     
@@ -261,10 +261,14 @@ function JuecesControlPanel({
       // Determinar el ID del ganador correctamente
       let ganadorId = null
       if (combateData.atleta1 && combateData.atleta2) {
-        // Comparar por el objeto atleta directamente
-        if (ganador === athlete1) {
+        // Comparar por nombre completo
+        const nombreGanador = ganador.name
+        const nombreAtleta1 = `${combateData.atleta1.nombre} ${combateData.atleta1.apellido}`
+        const nombreAtleta2 = `${combateData.atleta2.nombre} ${combateData.atleta2.apellido}`
+        
+        if (nombreGanador === nombreAtleta1) {
           ganadorId = combateData.atleta1.id
-        } else if (ganador === athlete2) {
+        } else if (nombreGanador === nombreAtleta2) {
           ganadorId = combateData.atleta2.id
         }
       }
@@ -274,18 +278,19 @@ function JuecesControlPanel({
         return
       }
 
-      // Actualizar el combate en la base de datos
+      // Actualizar el combate en la base de datos CON PUNTOS
       const supabase = (await import('@/lib/supabase/client')).getSupabaseBrowserClient()
       const { error } = await supabase
         .from('combates_individuales')
         .update({
           ganador_id: ganadorId,
           estado: 'finalizado',
-          resultado: razon,
           puntos_atleta1: getTotalPoints(1),
           puntos_atleta2: getTotalPoints(2)
         })
         .eq('id', combateData.id)
+      
+      console.log(`Guardando puntos: Atleta1=${getTotalPoints(1)}, Atleta2=${getTotalPoints(2)}`)
 
       if (error) {
         console.error('Error actualizando combate:', error)
@@ -293,12 +298,7 @@ function JuecesControlPanel({
         return
       }
 
-      console.log(`¡Combate finalizado exitosamente! Ganador: ${ganador.name} - El bracket se actualizará automáticamente.`)
-      
-      // Opcional: Mostrar mensaje de éxito
-      setTimeout(() => {
-        alert('¡Combate finalizado! El bracket del campeonato se ha actualizado automáticamente.')
-      }, 1000)
+      console.log(`¡Combate finalizado exitosamente! Ganador ID: ${ganadorId} - El bracket se actualizará automáticamente.`)
 
     } catch (error) {
       console.error('Error finalizando combate:', error)
