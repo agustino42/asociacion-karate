@@ -25,10 +25,10 @@ export default async function CombateCampeonatoPage({ params }: { params: Promis
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-black">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-gray-900 to-black">
       <div className="container mx-auto px-4 py-6">
         {/* Header del combate */}
-        <div className="mb-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-xl">
+        <div className="mb-6 bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-xl">
           <div className="text-center">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">
               🥋 COMBATE DE CAMPEONATO

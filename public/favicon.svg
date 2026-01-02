@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="karate-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Fondo circular -->
+  <circle cx="16" cy="16" r="15" fill="url(#karate-gradient)" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Figura de karateka en posición de combate -->
+  <g fill="#ffffff" stroke="#ffffff" stroke-width="0.5">
+    <!-- Cabeza -->
+    <circle cx="16" cy="8" r="2.5"/>
+    
+    <!-- Cuerpo -->
+    <rect x="14.5" y="10" width="3" height="8" rx="1"/>
+    
+    <!-- Brazo izquierdo (posición de guardia) -->
+    <rect x="11" y="12" width="4" height="1.5" rx="0.5" transform="rotate(-30 13 12.75)"/>
+    
+    <!-- Brazo derecho (puño extendido) -->
+    <rect x="17" y="13" width="5" height="1.5" rx="0.5" transform="rotate(15 19.5 13.75)"/>
+    
+    <!-- Pierna izquierda -->
+    <rect x="13" y="18" width="1.5" height="6" rx="0.5" transform="rotate(-10 13.75 21)"/>
+    
+    <!-- Pierna derecha (patada) -->
+    <rect x="17" y="16" width="1.5" height="5" rx="0.5" transform="rotate(25 17.75 18.5)"/>
+    
+    <!-- Cinturón -->
+    <rect x="14" y="15" width="4" height="1" fill="#fbbf24"/>
+  </g>
+  
+  <!-- Efecto de movimiento -->
+  <g fill="#ffffff" opacity="0.6">
+    <circle cx="22" cy="14" r="0.5"/>
+    <circle cx="24" cy="16" r="0.3"/>
+    <circle cx="23" cy="18" r="0.4"/>
+  </g>
+</svg>
