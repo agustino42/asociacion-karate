@@ -11,13 +11,20 @@ export default async function NuevoCombateEquipoPage() {
         `
         id, 
         nombre,
-        entrenadores!inner(nombre, apellido)
+        entrenadores(nombre, apellido)
       `,
       )
-      .limit(1, { foreignTable: 'entrenadores' })
       .order("nombre"),
     supabase.from("jueces").select("id, nombre, apellido").eq("activo", true).order("nombre"),
   ])
+
+  // Transform equipos data to match expected type
+  const equiposTransformed = equipos?.map(equipo => ({
+    ...equipo,
+    entrenadores: Array.isArray(equipo.entrenadores) && equipo.entrenadores.length > 0 
+      ? equipo.entrenadores[0] 
+      : null
+  })) || []
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -26,7 +33,7 @@ export default async function NuevoCombateEquipoPage() {
         <p className="text-muted-foreground">Configura un combate entre dos equipos (3 atletas cada uno)</p>
       </div>
 
-      <CombateEquipoForm equipos={equipos || []} jueces={jueces || []} />
+      <CombateEquipoForm equipos={equiposTransformed} jueces={jueces || []} />
     </div>
   )
 }

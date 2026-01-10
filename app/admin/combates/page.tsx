@@ -12,11 +12,12 @@ type SearchParams = {
   pageEq?: string
 }
 
-export default async function CombatesPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function CombatesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const supabase = await getSupabaseServerClient()
+  const resolvedSearchParams = await searchParams
   
-  const pageInd = parseInt(searchParams.pageInd || '1')
-  const pageEq = parseInt(searchParams.pageEq || '1')
+  const pageInd = parseInt(resolvedSearchParams.pageInd || '1')
+  const pageEq = parseInt(resolvedSearchParams.pageEq || '1')
   const itemsPerPage = 5
   
   const fromInd = (pageInd - 1) * itemsPerPage

@@ -92,10 +92,7 @@ export function GestionarCombateIndividualNuevo({ combate }: { combate: any }) {
         </Button>
       </div>
 
-      <JuecesControlPanel 
-        combateData={combate}
-        onFinalizarCombate={handleFinalizarCombate}
-      />
+      <JuecesControlPanel />
     </div>
   )
 }

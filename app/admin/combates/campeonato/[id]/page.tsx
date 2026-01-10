@@ -49,9 +49,7 @@ export default async function CombateCampeonatoPage({ params }: { params: Promis
           </div>
         </div>
 
-        <JuecesControlPanel 
-          combateData={combate}
-        />
+        <JuecesControlPanel />
       </div>
     </div>
   )
