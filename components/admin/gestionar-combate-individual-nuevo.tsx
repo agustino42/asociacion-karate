@@ -92,7 +92,21 @@ export function GestionarCombateIndividualNuevo({ combate }: { combate: any }) {
         </Button>
       </div>
 
-      <JuecesControlPanel />
+      <JuecesControlPanel 
+        combateId={combate.id}
+        atleta1Data={{
+          id: combate.atleta1.id,
+          nombre: `${combate.atleta1.nombre} ${combate.atleta1.apellido}`.toUpperCase(),
+          equipo: combate.atleta1.equipo?.nombre || 'SIN EQUIPO',
+          ubicacion: 'VENEZUELA'
+        }}
+        atleta2Data={{
+          id: combate.atleta2.id,
+          nombre: `${combate.atleta2.nombre} ${combate.atleta2.apellido}`.toUpperCase(),
+          equipo: combate.atleta2.equipo?.nombre || 'SIN EQUIPO',
+          ubicacion: 'VENEZUELA'
+        }}
+      />
     </div>
   )
 }

@@ -38,9 +38,10 @@ type Props = {
   currentPage: number
   totalPages: number
   totalItems: number
+  pageParam?: string
 }
 
-export function CombatesIndividualesTable({ combates, currentPage, totalPages, totalItems }: Props) {
+export function CombatesIndividualesTable({ combates, currentPage, totalPages, totalItems, pageParam = 'pageInd' }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -79,7 +80,7 @@ export function CombatesIndividualesTable({ combates, currentPage, totalPages, t
 
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
-    params.set('pageInd', page.toString())
+    params.set(pageParam, page.toString())
     router.push(`?${params.toString()}`)
   }
 
@@ -95,6 +96,7 @@ export function CombatesIndividualesTable({ combates, currentPage, totalPages, t
         <Table>
         <TableHeader>
           <TableRow>
+            <TableHead>Tipo</TableHead>
             <TableHead>Atleta 1</TableHead>
             <TableHead>VS</TableHead>
             <TableHead>Atleta 2</TableHead>
@@ -108,13 +110,20 @@ export function CombatesIndividualesTable({ combates, currentPage, totalPages, t
         <TableBody>
           {combates.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-muted-foreground">
+              <TableCell colSpan={9} className="text-center text-muted-foreground">
                 No hay combates registrados
               </TableCell>
             </TableRow>
           ) : (
-            combates.map((combate) => (
+            combates.map((combate) => {
+              const esCampeonato = combate.categoria.startsWith('Campeonato')
+              return (
               <TableRow key={combate.id}>
+                <TableCell>
+                  <Badge variant={esCampeonato ? "default" : "secondary"} className={esCampeonato ? "bg-yellow-600 hover:bg-yellow-700" : ""}>
+                    {esCampeonato ? "🏆 Campeonato" : "🥋 Individual"}
+                  </Badge>
+                </TableCell>
                 <TableCell className={`font-medium ${combate.ganador?.id === combate.atleta1.id && combate.estado === 'finalizado' ? 'bg-green-50 text-green-800 font-bold' : ''}`}>
                   {combate.atleta1.nombre} {combate.atleta1.apellido}
                   {combate.ganador?.id === combate.atleta1.id && (
@@ -236,7 +245,8 @@ export function CombatesIndividualesTable({ combates, currentPage, totalPages, t
                   </div>
                 </TableCell>
               </TableRow>
-            ))
+              )
+            })
           )}
         </TableBody>
       </Table>

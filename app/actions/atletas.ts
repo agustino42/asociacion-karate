@@ -14,6 +14,7 @@ export type AtletaFormData = {
   cinturon: string
   equipo_id?: string
   activo: boolean
+  genero?: string
 }
 
 export async function crearAtleta(formData: AtletaFormData) {

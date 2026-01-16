@@ -27,7 +27,7 @@ export default async function JuecesPage() {
       </div>
 
       <JuecesTable jueces={jueces || []} />
-      <JuecesControlPanel />
+      {/** <JuecesControlPanel />*/}
     </div>
   )
 }

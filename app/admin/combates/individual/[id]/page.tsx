@@ -11,10 +11,10 @@ export default async function CombateIndividualPage({ params }: { params: Promis
     .select(
       `
       *,
-      atleta1:atletas!combates_individuales_atleta1_id_fkey(id, nombre, apellido, cinturon),
-      atleta2:atletas!combates_individuales_atleta2_id_fkey(id, nombre, apellido, cinturon),
-      ganador:atletas!combates_individuales_ganador_id_fkey(id, nombre, apellido),
-      juez:jueces(id, nombre, apellido)
+      atleta1:atleta1_id(id, nombre, apellido, cinturon, equipo:equipo_id(nombre)),
+      atleta2:atleta2_id(id, nombre, apellido, cinturon, equipo:equipo_id(nombre)),
+      ganador:ganador_id(id, nombre, apellido),
+      juez:juez_principal_id(id, nombre, apellido)
     `,
     )
     .eq("id", id)

@@ -26,9 +26,17 @@ import { useToast } from "@/hooks/use-toast" // Hook para notificaciones
 
 // Interfaz para datos de atleta (nombre, equipo, ubicación)
 interface Atleta {
+  id?: string
   nombre: string
   equipo: string
   ubicacion: string
+}
+
+// Props del componente
+interface PanelControlJuecesProps {
+  combateId?: string
+  atleta1Data?: Atleta
+  atleta2Data?: Atleta
 }
 
 // Interfaz para penalizaciones (C, K, HC, H + descalificaciones)
@@ -48,7 +56,7 @@ interface Penalizaciones {
   shikkaku: boolean // Descalificación por conducta grave
 }
 
-function PanelControlJueces() {
+function PanelControlJueces({ combateId, atleta1Data, atleta2Data }: PanelControlJuecesProps = {}) {
   const { theme } = useTheme()
   const router = useRouter()
   const { toast } = useToast()
@@ -58,8 +66,9 @@ function PanelControlJueces() {
   const [guardandoCombate, setGuardandoCombate] = useState(false)
 
   // Hooks para sonidos
-  const [reproducirSonidoPunto] = useSound('/sounds/point.mp3', { volume: 0.5 })
-  const [reproducirSonidoGanador] = useSound('/sounds/winner.mp3', { volume: 0.5 })
+  // 
+  {/**  const [reproducirSonidoPunto] = useSound('/sounds/point.mp3', { volume: 0.5 })
+  const [reproducirSonidoGanador] = useSound('/sounds/winner.mp3', { volume: 0.5 })*/}
 
   useEffect(() => {
     setMontado(true)
@@ -67,8 +76,22 @@ function PanelControlJueces() {
 
   // ========== ESTADOS DE ATLETAS ==========
   // Información de los atletas (nombre, equipo, ubicación)
-  const [atleta1, setAtleta1] = useState<Atleta>({ nombre: 'CARMEN LINARES', equipo: 'DRAGONES ROJOS', ubicacion: 'BARINAS' })
-  const [atleta2, setAtleta2] = useState<Atleta>({ nombre: 'LAURA SÁNCHEZ', equipo: 'TURPIALES', ubicacion: 'BARINAS' })
+  const [atleta1, setAtleta1] = useState<Atleta>(
+    atleta1Data || { nombre: 'CARMEN LINARES', equipo: 'DRAGONES ROJOS', ubicacion: 'BARINAS' }
+  )
+  const [atleta2, setAtleta2] = useState<Atleta>(
+    atleta2Data || { nombre: 'LAURA SÁNCHEZ', equipo: 'TURPIALES', ubicacion: 'BARINAS' }
+  )
+
+  // Actualizar atletas cuando cambien los props
+  useEffect(() => {
+    if (atleta1Data) {
+      setAtleta1(atleta1Data)
+    }
+    if (atleta2Data) {
+      setAtleta2(atleta2Data)
+    }
+  }, [atleta1Data, atleta2Data])
   
   // ========== ESTADOS DE PUNTUACIÓN ==========
   // Puntos por tipo: Yuko (1 punto), Waza-ari (2 puntos), Ippon (3 puntos)
@@ -208,9 +231,9 @@ function PanelControlJueces() {
         return nuevosPuntos
       })
     }
-    if (sonidoActivado) {
+   {/**  if (sonidoActivado) {
       reproducirSonidoPunto()
-    }
+    }*/}
   }
 
   /** Aplica penalización progresiva de Categoría 1 - SIN OTORGAR PUNTOS AL OPONENTE */
@@ -461,6 +484,50 @@ function PanelControlJueces() {
   const guardarCombateEnBD = async (atletaGanador: number, razonVictoria: string) => {
     setGuardandoCombate(true)
     try {
+      // Si ya existe un combateId, actualizar ese combate
+      if (combateId && atleta1.id && atleta2.id) {
+        const ganadorId = atletaGanador === 1 ? atleta1.id : atletaGanador === 2 ? atleta2.id : null
+        
+        const { error: errorActualizar } = await supabase
+          .from('combates_individuales')
+          .update({
+            ganador_id: ganadorId,
+            puntos_atleta1: obtenerPuntosTotales(1),
+            puntos_atleta2: obtenerPuntosTotales(2),
+            estado: 'finalizado'
+          })
+          .eq('id', combateId)
+
+        if (errorActualizar) throw errorActualizar
+
+        // Actualizar rankings si hay ganador
+        if (ganadorId) {
+          const perdedorId = ganadorId === atleta1.id ? atleta2.id : atleta1.id
+          
+          await Promise.all([
+            supabase.rpc('actualizar_ranking_atleta', {
+              p_atleta_id: ganadorId,
+              p_resultado: 'victoria',
+              p_puntos: 3
+            }),
+            supabase.rpc('actualizar_ranking_atleta', {
+              p_atleta_id: perdedorId,
+              p_resultado: 'derrota',
+              p_puntos: 0
+            })
+          ])
+
+          await supabase.rpc('recalcular_posiciones_atletas')
+        }
+
+        toast({
+          title: "Combate actualizado",
+          description: `El resultado del combate se ha guardado correctamente.`,
+        })
+        return
+      }
+
+      // Si no existe combateId, crear uno nuevo (lógica original)
       // Buscar o crear atletas en la base de datos
       const { data: atletasExistentes } = await supabase
         .from('atletas')

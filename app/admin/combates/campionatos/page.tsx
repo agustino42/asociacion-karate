@@ -18,6 +18,7 @@ interface Atleta {
   apellido: string
   cinturon: string
   categoria: string
+  genero?: string
 }
 
 interface Juez {
@@ -59,6 +60,7 @@ const CampeonatosPage = () => {
   const [jueces, setJueces] = useState<Juez[]>([])
   const [campeonato, setCampeonato] = useState<Campeonato | null>(null)
   const [categoria, setCategoria] = useState<string>('')
+  const [generoSeleccionado, setGeneroSeleccionado] = useState<string>('')
   const [darkMode, setDarkMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const [animatingWinner, setAnimatingWinner] = useState<{ ronda: number, posicion: number } | null>(null)
@@ -85,14 +87,17 @@ const CampeonatosPage = () => {
       const { data: atletasData } = await supabase
         .from('atletas')
         .select('*')
-        .limit(8)
+        .order('nombre')
 
       // Cargar jueces
       const { data: juecesData } = await supabase
         .from('jueces')
         .select('*')
 
-      if (atletasData) setAtletas(atletasData)
+      if (atletasData) {
+        console.log('Atletas cargados:', atletasData.map(a => ({ nombre: a.nombre, genero: a.genero })))
+        setAtletas(atletasData)
+      }
       if (juecesData) setJueces(juecesData)
 
       // Inicializar combates vacíos para que el usuario seleccione atletas
@@ -140,6 +145,12 @@ const CampeonatosPage = () => {
 
       // Crear combate en la base de datos con identificador de campeonato
       const rondaNombre = combate.ronda === 1 ? 'Primera Ronda' : combate.ronda === 2 ? 'Semifinal' : 'Final'
+      
+      console.log('Creando combate con:', {
+        atleta1: `${combate.atleta1.nombre} ${combate.atleta1.apellido} (ID: ${combate.atleta1.id})`,
+        atleta2: `${combate.atleta2.nombre} ${combate.atleta2.apellido} (ID: ${combate.atleta2.id})`
+      })
+      
       const { data: combateCreado, error } = await supabase
         .from('combates_individuales')
         .insert({
@@ -458,10 +469,13 @@ const CampeonatosPage = () => {
                   <Users className="h-3 w-3" />
                   Atleta Azul:
                 </label>
-                <Select
+
+                
+                 <Select
                   value={combate.atleta1?.id?.toString() || ''}
                   onValueChange={(value) => {
                     const atleta = atletas.find(a => a.id.toString() === value)
+                    console.log('Seleccionando atleta1:', atleta)
                     if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, true)
                   }}
                 >
@@ -469,18 +483,11 @@ const CampeonatosPage = () => {
                     <SelectValue placeholder="🥋 Atleta azul" />
                   </SelectTrigger>
                   <SelectContent>
-                    {atletas.filter(a =>
-                      !combates.some(c =>
-                        (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
-                          c.atleta1?.id === a.id || c.atleta2?.id === a.id
-                      )
-                    ).map(atleta => (
-                      <SelectItem key={atleta.id} value={atleta.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-blue-500" />
-                          <span>{atleta.nombre} {atleta.apellido}</span>
-                          <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
-                        </div>
+                    {atletas
+                      .filter(a => generoSeleccionado === 'todos' || !generoSeleccionado || a.genero === generoSeleccionado)
+                      .map((atleta) => (
+                      <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta2?.id?.toString()}>
+                        {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -508,6 +515,7 @@ const CampeonatosPage = () => {
                   value={combate.atleta2?.id?.toString() || ''}
                   onValueChange={(value) => {
                     const atleta = atletas.find(a => a.id.toString() === value)
+                    console.log('Seleccionando atleta2:', atleta)
                     if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, false)
                   }}
                 >
@@ -515,18 +523,11 @@ const CampeonatosPage = () => {
                     <SelectValue placeholder="🥋 Atleta rojo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {atletas.filter(a =>
-                      !combates.some(c =>
-                        (c.ronda === combate.ronda && c.posicion === combate.posicion) ? false :
-                          c.atleta1?.id === a.id || c.atleta2?.id === a.id
-                      ) && a.id !== combate.atleta1?.id
-                    ).map(atleta => (
-                      <SelectItem key={atleta.id} value={atleta.id.toString()}>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-red-500" />
-                          <span>{atleta.nombre} {atleta.apellido}</span>
-                          <Badge variant="outline" className="text-xs">{atleta.cinturon}</Badge>
-                        </div>
+                    {atletas
+                      .filter(a => generoSeleccionado === 'todos' || !generoSeleccionado || a.genero === generoSeleccionado)
+                      .map((atleta) => (
+                      <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta1?.id?.toString()}>
+                        {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -768,8 +769,19 @@ const CampeonatosPage = () => {
 
             {/* Controles */}
             <div className="flex items-center gap-4">
+              {/* Selector de Género */}
+              <Select value={generoSeleccionado} onValueChange={setGeneroSeleccionado}>
+                <SelectTrigger className="w-40 bg-gray-800 border-gray-600 text-white">
+                  <SelectValue placeholder="👥 Género" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="Masculino">👨 Masculino</SelectItem>
+                  <SelectItem value="Femenino">👩 Femenino</SelectItem>
+                </SelectContent>
+              </Select>
               {/* Selector de Categoría */}
-              <Select value={categoria} onValueChange={setCategoria}>
+              {/** <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-600 text-white">
                   <SelectValue placeholder="🥋 Seleccionar categoría" />
                 </SelectTrigger>
@@ -778,10 +790,21 @@ const CampeonatosPage = () => {
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select>*/}
 
               {/* Botones de control */}
               <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    cargarDatos()
+                    console.log('Recargando atletas...')
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-900/20 border-green-600 text-green-400 hover:bg-green-900/40"
+                >
+                  🔄 Recargar Atletas
+                </Button>
                 <Button
                   onClick={() => {
                     actualizarBracket()

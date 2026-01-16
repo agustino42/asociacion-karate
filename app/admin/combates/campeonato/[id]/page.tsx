@@ -49,7 +49,21 @@ export default async function CombateCampeonatoPage({ params }: { params: Promis
           </div>
         </div>
 
-        <JuecesControlPanel />
+        <JuecesControlPanel 
+          combateId={combate.id}
+          atleta1Data={{
+            id: combate.atleta1.id,
+            nombre: `${combate.atleta1.nombre} ${combate.atleta1.apellido}`.toUpperCase(),
+            equipo: 'CAMPEONATO',
+            ubicacion: 'VENEZUELA'
+          }}
+          atleta2Data={{
+            id: combate.atleta2.id,
+            nombre: `${combate.atleta2.nombre} ${combate.atleta2.apellido}`.toUpperCase(),
+            equipo: 'CAMPEONATO',
+            ubicacion: 'VENEZUELA'
+          }}
+        />
       </div>
     </div>
   )

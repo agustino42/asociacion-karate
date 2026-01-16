@@ -10,6 +10,7 @@ import { LimpiarCombatesButton } from "@/components/admin/limpiar-combates-butto
 type SearchParams = {
   pageInd?: string
   pageEq?: string
+  pageCamp?: string
 }
 
 export default async function CombatesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -18,26 +19,30 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
   
   const pageInd = parseInt(resolvedSearchParams.pageInd || '1')
   const pageEq = parseInt(resolvedSearchParams.pageEq || '1')
+  const pageCamp = parseInt(resolvedSearchParams.pageCamp || '1')
   const itemsPerPage = 5
   
   const fromInd = (pageInd - 1) * itemsPerPage
   const toInd = fromInd + itemsPerPage - 1
   const fromEq = (pageEq - 1) * itemsPerPage
   const toEq = fromEq + itemsPerPage - 1
+  const fromCamp = (pageCamp - 1) * itemsPerPage
+  const toCamp = fromCamp + itemsPerPage - 1
 
-  const [{ data: combatesIndividuales, count: countInd }, { data: combatesEquipos, count: countEq }] = await Promise.all([
+  const [{ data: combatesIndividuales, count: countInd }, { data: combatesEquipos, count: countEq }, { data: combatesCampeonatos, count: countCamp }] = await Promise.all([
     supabase
       .from("combates_individuales")
       .select(
         `
         *,
-        atleta1:atletas!combates_individuales_atleta1_id_fkey(id, nombre, apellido),
-        atleta2:atletas!combates_individuales_atleta2_id_fkey(id, nombre, apellido),
-        ganador:atletas!combates_individuales_ganador_id_fkey(id, nombre, apellido),
-        juez:jueces(id, nombre, apellido)
+        atleta1:atleta1_id(id, nombre, apellido),
+        atleta2:atleta2_id(id, nombre, apellido),
+        ganador:ganador_id(id, nombre, apellido),
+        juez:juez_principal_id(id, nombre, apellido)
       `,
         { count: 'exact' }
       )
+      .not('categoria', 'like', 'Campeonato%')
       .order("fecha_combate", { ascending: false })
       .range(fromInd, toInd),
     supabase
@@ -45,19 +50,35 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
       .select(
         `
         *,
-        equipo1:equipos!combates_equipos_equipo1_id_fkey(id, nombre),
-        equipo2:equipos!combates_equipos_equipo2_id_fkey(id, nombre),
-        equipo_ganador:equipos!combates_equipos_equipo_ganador_id_fkey(id, nombre),
-        juez:jueces(id, nombre, apellido)
+        equipo1:equipo1_id(id, nombre),
+        equipo2:equipo2_id(id, nombre),
+        equipo_ganador:equipo_ganador_id(id, nombre),
+        juez:juez_principal_id(id, nombre, apellido)
       `,
         { count: 'exact' }
       )
       .order("fecha_combate", { ascending: false })
       .range(fromEq, toEq),
+    supabase
+      .from("combates_individuales")
+      .select(
+        `
+        *,
+        atleta1:atleta1_id(id, nombre, apellido),
+        atleta2:atleta2_id(id, nombre, apellido),
+        ganador:ganador_id(id, nombre, apellido),
+        juez:juez_principal_id(id, nombre, apellido)
+      `,
+        { count: 'exact' }
+      )
+      .like('categoria', 'Campeonato%')
+      .order("fecha_combate", { ascending: false })
+      .range(fromCamp, toCamp),
   ])
   
   const totalPagesInd = Math.ceil((countInd || 0) / itemsPerPage)
   const totalPagesEq = Math.ceil((countEq || 0) / itemsPerPage)
+  const totalPagesCamp = Math.ceil((countCamp || 0) / itemsPerPage)
 
   return (
     <div className="space-y-6">
@@ -72,6 +93,7 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
         <div className="flex items-center justify-between flex-wrap gap-2">
           <TabsList>
             <TabsTrigger value="individuales">Combates 1v1</TabsTrigger>
+            <TabsTrigger value="campeonatos">🏆 Campeonatos</TabsTrigger>
             <TabsTrigger value="equipos">Combates por Equipos</TabsTrigger>
           </TabsList>
           <div className="flex gap-2 flex-wrap">
@@ -103,6 +125,17 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
             currentPage={pageInd}
             totalPages={totalPagesInd}
             totalItems={countInd || 0}
+            pageParam="pageInd"
+          />
+        </TabsContent>
+
+        <TabsContent value="campeonatos">
+          <CombatesIndividualesTable 
+            combates={combatesCampeonatos || []} 
+            currentPage={pageCamp}
+            totalPages={totalPagesCamp}
+            totalItems={countCamp || 0}
+            pageParam="pageCamp"
           />
         </TabsContent>
 
