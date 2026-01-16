@@ -35,8 +35,9 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
     peso: atleta?.peso || "",
     categoria_peso: atleta?.categoria_peso || "Ligero",
     cinturon: atleta?.cinturon || "Blanco",
-    equipo_id: atleta?.equipo_id || "default",
+    equipo_id: atleta?.equipo_id || "sin-equipo",
     activo: atleta?.activo ?? true,
+    genero: atleta?.genero || "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +45,7 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
     setLoading(true)
     setError(null)
 
+    // Preparar Datos para envio
     try {
       const dataToSubmit: AtletaFormData = {
         nombre: formData.nombre,
@@ -53,8 +55,9 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
         peso: formData.peso ? Number.parseFloat(formData.peso) : undefined,
         categoria_peso: formData.categoria_peso,
         cinturon: formData.cinturon,
-        equipo_id: formData.equipo_id || undefined,
+        equipo_id: formData.equipo_id === "sin-equipo" ? undefined : formData.equipo_id,
         activo: formData.activo,
+        genero: formData.genero || undefined,
       }
 
       if (atleta) {
@@ -115,6 +118,25 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
                 required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="genero">Género *</Label>
+              <Select
+                value={formData.genero}
+                onValueChange={(value) => setFormData({ ...formData, genero: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar género" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Masculino">👨 Masculino</SelectItem>
+                  <SelectItem value="Femenino">👩 Femenino</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento *</Label>
               <Input
@@ -191,7 +213,7 @@ export function AtletaForm({ equipos, atleta }: AtletaFormProps) {
                   <SelectValue placeholder="Seleccionar equipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">Sin equipo</SelectItem>
+                  <SelectItem value="sin-equipo">Sin equipo</SelectItem>
                   {equipos.map((equipo) => (
                     <SelectItem key={equipo.id} value={equipo.id}>
                       {equipo.nombre}

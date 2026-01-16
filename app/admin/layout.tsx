@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, LogOut } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Toaster } from "@/components/ui/toaster"
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getUser()
@@ -107,6 +108,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </header>
 
       <main className="container mx-auto px-4 py-8">{children}</main>
+      <Toaster />
     </div>
   )
 }

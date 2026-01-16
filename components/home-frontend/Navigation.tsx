@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Menu, X, Moon, Sun, LogIn } from "lucide-react"
-import { useTheme } from "next-themes"
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
+import { Menu, X, Sun, Moon, LogIn } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useTheme } from "next-themes"
 
 const navItems = [
   { id: "inicio", label: "Inicio" },
@@ -18,7 +18,28 @@ const navItems = [
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('inicio')
   const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 100
+      
+      for (const item of navItems) {
+        const section = document.getElementById(item.id)
+        if (section) {
+          const { offsetTop, offsetHeight } = section
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(item.id)
+            break
+          }
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id)
@@ -42,14 +63,14 @@ export default function Navigation() {
             animate={{ opacity: 1 }}
             className="flex items-center gap-2"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-lg flex items-center justify-center">
-              <span className="text-lg text-white font-bold">空</span>
+            <div className="w-6 h-6 md:w-10 md:h-10 bg-gradient-to-br from-red-600 to-black rounded-lg flex items-center justify-center"> 
+              <span className="text-[0.8rem] md:text-[1.25rem] text-white font-bold">空</span> 
             </div>
-            <span className="font-bold text-xl">ASO-KARATE</span>
+            <span className="font-extrabold text-[0.8rem] md:text-[1.25rem] tracking-widest">ASO</span>
+            <span className="font-extrabold text-[0.8rem] md:text-[1.25rem] tracking-widest text-red-600">KARATE</span>
           </motion.div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
             {navItems.map((item, index) => (
               <motion.button
                 key={item.id}
@@ -57,9 +78,10 @@ export default function Navigation() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={() => scrollToSection(item.id)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className={`group ${activeSection === item.id ? 'text-red-600' : 'text-foreground dark:text-white'} hover:text-red-600 dark:hover:text-red-600 transition-all duration-300 font-bold uppercase tracking-wider py-1 relative z-10 text-sm`}
               >
                 {item.label}
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-red-600 transition-all duration-300 ${activeSection === item.id ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </motion.button>
             ))}
             <Button
@@ -77,18 +99,16 @@ export default function Navigation() {
             </Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden flex-shrink-0"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
 
-        {/* Mobile Navigation */}
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}

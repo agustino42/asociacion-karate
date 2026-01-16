@@ -7,7 +7,7 @@ interface FAQItem {
   question: string
   answer: string
 }
-
+// datos de preguntas frecuentes 
 const faqData: FAQItem[] = [
   {
     question: "¿Qué edad mínima se requiere para practicar karate?",
@@ -64,9 +64,9 @@ export default function FAQSection() {
             >
               <h3 className="font-semibold pr-4">{item.question}</h3>
               {openItems.includes(index) ? (
-                <ChevronUp className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <ChevronUp className="h-5 w-5 text-muted-foreground shrink-0" />
               ) : (
-                <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
               )}
             </button>
             {openItems.includes(index) && (
