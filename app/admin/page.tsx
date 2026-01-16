@@ -10,85 +10,90 @@ import { SimuladorCombateRapido } from "@/components/admin/simulador-combate-rap
 export default async function AdminDashboard() {
   const supabase = await createClient()
 
-  // Obtener estadísticas
-  const [
-    { count: atletasCount },
-    { count: entrenadoresCount },
-    { count: juecesCount },
-    { count: combatesCount },
-    { data: combatesRecientes },
-    { data: combatesEnVivo },
-    { data: proximosCombates },
-    { data: topAtletas },
-    { data: atletasRecientes },
-    { data: entrenadoresRecientes },
-    { data: juecesRecientes },
-  ] = await Promise.all([
-    supabase.from("atletas").select("*", { count: "exact", head: true }),
-    supabase.from("entrenadores").select("*", { count: "exact", head: true }),
-    supabase.from("jueces").select("*", { count: "exact", head: true }),
-    supabase.from("combates_individuales").select("*", { count: "exact", head: true }),
-    supabase
-      .from("combates_individuales")
-      .select(
-        `
-        *,
-        atleta1:atletas!combates_individuales_atleta1_id_fkey(nombre, apellido),
-        atleta2:atletas!combates_individuales_atleta2_id_fkey(nombre, apellido),
-        ganador:atletas!combates_individuales_ganador_id_fkey(nombre, apellido)
-      `,
-      )
-      .eq("estado", "finalizado")
-      .order("fecha_combate", { ascending: false })
-      .limit(5),
-    supabase
-      .from("combates_individuales")
-      .select(
-        `
-        *,
-        atleta1:atletas!combates_individuales_atleta1_id_fkey(nombre, apellido),
-        atleta2:atletas!combates_individuales_atleta2_id_fkey(nombre, apellido)
-      `,
-      )
-      .eq("estado", "en_curso"),
-    supabase
-      .from("combates_individuales")
-      .select(
-        `
-        *,
-        atleta1:atletas!combates_individuales_atleta1_id_fkey(nombre, apellido),
-        atleta2:atletas!combates_individuales_atleta2_id_fkey(nombre, apellido)
-      `,
-      )
-      .eq("estado", "programado")
-      .order("fecha_combate", { ascending: true })
-      .limit(5),
-    supabase
-      .from("rankings_atletas")
-      .select(
-        `
-        *,
-        atletas(nombre, apellido, cinturon)
-      `,
-      )
-      .order("puntos_totales", { ascending: false })
-      .limit(5),
-    supabase
-      .from("atletas")
-      .select("*, equipos(nombre)")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("entrenadores")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("jueces")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ])
+  // Inicializar variables con valores por defecto
+  let atletasCount = 0
+  let entrenadoresCount = 0
+  let juecesCount = 0
+  let combatesCount = 0
+  let atletasRecientes: any[] = []
+  let entrenadoresRecientes: any[] = []
+  let juecesRecientes: any[] = []
+
+  try {
+    // Verificar y obtener conteos básicos
+    const atletasRes = await supabase.from("atletas").select("*", { count: "exact", head: true })
+    if (!atletasRes.error) {
+      atletasCount = atletasRes.count || 0
+    }
+
+    const entrenadoresRes = await supabase.from("entrenadores").select("*", { count: "exact", head: true })
+    if (!entrenadoresRes.error) {
+      entrenadoresCount = entrenadoresRes.count || 0
+    }
+
+    const juecesRes = await supabase.from("jueces").select("*", { count: "exact", head: true })
+    if (!juecesRes.error) {
+      juecesCount = juecesRes.count || 0
+    }
+
+    // Intentar obtener combates si la tabla existe
+    try {
+      const combatesRes = await supabase.from("combates_individuales").select("*", { count: "exact", head: true })
+      if (!combatesRes.error) {
+        combatesCount = combatesRes.count || 0
+      }
+    } catch (error) {
+      console.log("Tabla combates_individuales no existe aún")
+    }
+
+    // Obtener datos recientes de atletas
+    try {
+      const atletasData = await supabase
+        .from("atletas")
+        .select("*, equipos(nombre)")
+        .order("created_at", { ascending: false })
+        .limit(5)
+      
+      if (!atletasData.error) {
+        atletasRecientes = atletasData.data || []
+      }
+    } catch (error) {
+      console.log("Error cargando atletas recientes:", error)
+    }
+
+    // Obtener datos recientes de entrenadores
+    try {
+      const entrenadoresData = await supabase
+        .from("entrenadores")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5)
+      
+      if (!entrenadoresData.error) {
+        entrenadoresRecientes = entrenadoresData.data || []
+      }
+    } catch (error) {
+      console.log("Error cargando entrenadores recientes:", error)
+    }
+
+    // Obtener datos recientes de jueces
+    try {
+      const juecesData = await supabase
+        .from("jueces")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(5)
+      
+      if (!juecesData.error) {
+        juecesRecientes = juecesData.data || []
+      }
+    } catch (error) {
+      console.log("Error cargando jueces recientes:", error)
+    }
+
+  } catch (error) {
+    console.error("Error general cargando datos del dashboard:", error)
+  }
 
   const stats = [
     {
@@ -160,45 +165,7 @@ export default async function AdminDashboard() {
         })}
       </div>
 
-      {combatesEnVivo && combatesEnVivo.length > 0 && (
-        <Card className="border-2 border-orange-500">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
-              <CardTitle>Combates en Vivo</CardTitle>
-              <Badge className="ml-auto bg-orange-600">{combatesEnVivo.length} activo(s)</Badge>
-            </div>
-            <CardDescription>Batallas en curso ahora mismo</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {combatesEnVivo.map((combate) => (
-                <Link key={combate.id} href={`/admin/combates/individual/${combate.id}`}>
-                  <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Swords className="h-5 w-5 text-orange-600" />
-                      <div>
-                        <p className="font-medium">
-                          {combate.atleta1.nombre} vs {combate.atleta2.nombre}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{combate.categoria}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">
-                        {combate.puntos_atleta1} - {combate.puntos_atleta2}
-                      </p>
-                      <Badge variant="outline" className="text-xs">
-                        Ver detalles
-                      </Badge>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
@@ -300,121 +267,7 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-600" />
-              <CardTitle>Combates Recientes</CardTitle>
-            </div>
-            <CardDescription>Últimos resultados finalizados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {combatesRecientes && combatesRecientes.length > 0 ? (
-                combatesRecientes.map((combate) => (
-                  <div key={combate.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {combate.atleta1.nombre} vs {combate.atleta2.nombre}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(combate.fecha_combate).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">
-                        {combate.puntos_atleta1} - {combate.puntos_atleta2}
-                      </p>
-                      {combate.ganador && <p className="text-xs text-green-600">Ganador: {combate.ganador.nombre}</p>}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No hay combates recientes</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              <CardTitle>Próximos Torneos</CardTitle>
-            </div>
-            <CardDescription>Combates programados</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {proximosCombates && proximosCombates.length > 0 ? (
-                proximosCombates.map((combate) => (
-                  <div key={combate.id} className="flex items-center justify-between p-3 rounded-lg border">
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <div>
-                        <p className="text-sm font-medium">
-                          {combate.atleta1.nombre} vs {combate.atleta2.nombre}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{combate.categoria}</p>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">{new Date(combate.fecha_combate).toLocaleDateString()}</Badge>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">No hay combates programados</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-600" />
-              <CardTitle>Top Atletas</CardTitle>
-            </div>
-            <CardDescription>Ranking de los mejores 5</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">#</TableHead>
-                  <TableHead>Atleta</TableHead>
-                  <TableHead className="text-right">Puntos</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {topAtletas && topAtletas.length > 0 ? (
-                  topAtletas.map((ranking, index) => (
-                    <TableRow key={ranking.id}>
-                      <TableCell className="font-bold">
-                        {index + 1}
-                        {index === 0 && <Trophy className="inline ml-1 h-3 w-3 text-yellow-500" />}
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {ranking.atletas.nombre} {ranking.atletas.apellido}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{ranking.atletas.cinturon}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-bold">{ranking.puntos_totales}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground text-sm">
-                      No hay datos de ranking
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
 
         <Card>
           <CardHeader>

@@ -60,7 +60,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md relative z-10">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-linear-to-br from-red-600 to-orange-600 rounded-full flex items-center justify-center">
               <span className="text-3xl text-white font-bold">空</span>
             </div>
           </div>
