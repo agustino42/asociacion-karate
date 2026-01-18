@@ -145,12 +145,12 @@ const CampeonatosPage = () => {
 
       // Crear combate en la base de datos con identificador de campeonato
       const rondaNombre = combate.ronda === 1 ? 'Primera Ronda' : combate.ronda === 2 ? 'Semifinal' : 'Final'
-      
+
       console.log('Creando combate con:', {
         atleta1: `${combate.atleta1.nombre} ${combate.atleta1.apellido} (ID: ${combate.atleta1.id})`,
         atleta2: `${combate.atleta2.nombre} ${combate.atleta2.apellido} (ID: ${combate.atleta2.id})`
       })
-      
+
       const { data: combateCreado, error } = await supabase
         .from('combates_individuales')
         .insert({
@@ -204,7 +204,7 @@ const CampeonatosPage = () => {
         `)
         .or('estado.eq.finalizado,estado.eq.en_curso')
         .like('categoria', 'Campeonato%')
-      
+
       console.log('Combates de Campeonato en BD:', combatesDB?.length || 0)
 
       if (combatesDB && combatesDB.length > 0) {
@@ -231,9 +231,9 @@ const CampeonatosPage = () => {
 
             // Si el combate está finalizado y tiene ganador
             if (combateDB.estado === 'finalizado' && combateDB.ganador_id) {
-              const ganadorData = combateDB.ganador || 
+              const ganadorData = combateDB.ganador ||
                 (combateDB.ganador_id === combateDB.atleta1?.id ? combateDB.atleta1 : combateDB.atleta2)
-              
+
               if (combate.estado !== 'finalizado' || !combate.ganador) {
                 huboActualizacion = true
 
@@ -245,7 +245,7 @@ const CampeonatosPage = () => {
                   puntos_atleta1: combateDB.puntos_atleta1 || 0,
                   puntos_atleta2: combateDB.puntos_atleta2 || 0
                 }
-                
+
                 console.log(`Combate R${combate.ronda}-${combate.posicion} finalizado. Ganador: ${ganadorData.nombre} ${ganadorData.apellido} (${combateDB.puntos_atleta1 || 0}-${combateDB.puntos_atleta2 || 0})`)
 
                 // Mostrar animación de ganador avanzando
@@ -267,17 +267,17 @@ const CampeonatosPage = () => {
           // Si es semifinal o final y no tiene atletas, buscar ganadores de ronda anterior
           if (combate.ronda > 1 && (!combate.atleta1 || !combate.atleta2)) {
             const posicionBase = (combate.posicion - 1) * 2 + 1
-            const combatesPrevios = combatesActualizados.filter(c => 
-              c.ronda === combate.ronda - 1 && 
+            const combatesPrevios = combatesActualizados.filter(c =>
+              c.ronda === combate.ronda - 1 &&
               (c.posicion === posicionBase || c.posicion === posicionBase + 1)
             )
-            
-            console.log(`Buscando ganadores para R${combate.ronda}-${combate.posicion}:`, 
+
+            console.log(`Buscando ganadores para R${combate.ronda}-${combate.posicion}:`,
               combatesPrevios.map(c => `R${c.ronda}-${c.posicion}: ${c.ganador ? c.ganador.nombre : 'Sin ganador'}`))
-            
+
             let nuevoAtleta1 = combate.atleta1
             let nuevoAtleta2 = combate.atleta2
-            
+
             // Asignar ganadores a los slots correspondientes
             combatesPrevios.forEach(cp => {
               if (cp.ganador) {
@@ -290,7 +290,7 @@ const CampeonatosPage = () => {
                 }
               }
             })
-            
+
             if (nuevoAtleta1 !== combate.atleta1 || nuevoAtleta2 !== combate.atleta2) {
               huboActualizacion = true
               return { ...combate, atleta1: nuevoAtleta1, atleta2: nuevoAtleta2 }
@@ -298,7 +298,7 @@ const CampeonatosPage = () => {
           }
           return combate
         })
-        
+
         // Solo actualizar si hubo cambios
         if (huboActualizacion) {
           setCombates(combatesConAvance)
@@ -335,10 +335,10 @@ const CampeonatosPage = () => {
     }
 
     window.addEventListener('focus', handleFocus)
-    
+
     // Actualizar inmediatamente al montar
     actualizarBracket()
-    
+
     return () => window.removeEventListener('focus', handleFocus)
   }, [combates])
 
@@ -393,27 +393,27 @@ const CampeonatosPage = () => {
 
   const CombateCard = ({ combate }: { combate: CombateCampeonato }) => {
     const puedeIniciar = combate.atleta1 && combate.atleta2 && combate.juez
-    
+
     // Verificar si este combate está esperando un ganador de ronda anterior
     const esperandoRival = combate.ronda > 1 && (!combate.atleta1 || !combate.atleta2)
-    
+
     // Obtener combates previos que alimentan este combate
     const getCombatesPrevios = () => {
       if (combate.ronda === 1) return []
       const posicionBase = (combate.posicion - 1) * 2 + 1
-      return combates.filter(c => 
-        c.ronda === combate.ronda - 1 && 
+      return combates.filter(c =>
+        c.ronda === combate.ronda - 1 &&
         (c.posicion === posicionBase || c.posicion === posicionBase + 1)
       )
     }
-    
+
     const combatesPrevios = getCombatesPrevios()
-    
+
     // Obtener ganadores disponibles de la ronda anterior desde el estado local
     const ganadoresLocales = combate.ronda === 1 ? atletas : combatesPrevios
       .filter(c => c.ganador)
       .map(c => c.ganador!)
-    
+
     // Debug: mostrar ganadores disponibles
     if (combate.ronda > 1 && ganadoresLocales.length === 0) {
       console.log(`Combate R${combate.ronda}-${combate.posicion}: Esperando ganadores de R${combate.ronda - 1}`)
@@ -470,8 +470,8 @@ const CampeonatosPage = () => {
                   Atleta Azul:
                 </label>
 
-                
-                 <Select
+
+                <Select
                   value={combate.atleta1?.id?.toString() || ''}
                   onValueChange={(value) => {
                     const atleta = atletas.find(a => a.id.toString() === value)
@@ -486,10 +486,10 @@ const CampeonatosPage = () => {
                     {atletas
                       .filter(a => generoSeleccionado === 'todos' || !generoSeleccionado || a.genero === generoSeleccionado)
                       .map((atleta) => (
-                      <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta2?.id?.toString()}>
-                        {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
-                      </SelectItem>
-                    ))}
+                        <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta2?.id?.toString()}>
+                          {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -526,10 +526,10 @@ const CampeonatosPage = () => {
                     {atletas
                       .filter(a => generoSeleccionado === 'todos' || !generoSeleccionado || a.genero === generoSeleccionado)
                       .map((atleta) => (
-                      <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta1?.id?.toString()}>
-                        {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
-                      </SelectItem>
-                    ))}
+                        <SelectItem key={atleta.id} value={atleta.id.toString()} disabled={atleta.id.toString() === combate.atleta1?.id?.toString()}>
+                          {atleta.nombre} {atleta.apellido} - {atleta.cinturon} {atleta.genero && `(${atleta.genero === 'Masculino' ? '👨' : '👩'})`}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -616,18 +616,16 @@ const CampeonatosPage = () => {
                   <div className="flex justify-center items-center gap-3">
                     <div className="text-center">
                       <div className="text-xs text-blue-400 mb-1">Azul</div>
-                      <div className={`text-2xl font-bold ${
-                        combate.ganador.id === combate.atleta1?.id ? 'text-green-400' : 'text-gray-500'
-                      }`}>
+                      <div className={`text-2xl font-bold ${combate.ganador.id === combate.atleta1?.id ? 'text-green-400' : 'text-gray-500'
+                        }`}>
                         {combate.puntos_atleta1 || 0}
                       </div>
                     </div>
                     <div className="text-gray-500 text-xl">-</div>
                     <div className="text-center">
                       <div className="text-xs text-red-400 mb-1">Rojo</div>
-                      <div className={`text-2xl font-bold ${
-                        combate.ganador.id === combate.atleta2?.id ? 'text-green-400' : 'text-gray-500'
-                      }`}>
+                      <div className={`text-2xl font-bold ${combate.ganador.id === combate.atleta2?.id ? 'text-green-400' : 'text-gray-500'
+                        }`}>
                         {combate.puntos_atleta2 || 0}
                       </div>
                     </div>
@@ -768,10 +766,10 @@ const CampeonatosPage = () => {
             </div>
 
             {/* Controles */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col xl:flex-row items-center gap-4 w-full xl:w-auto">
               {/* Selector de Género */}
               <Select value={generoSeleccionado} onValueChange={setGeneroSeleccionado}>
-                <SelectTrigger className="w-40 bg-gray-800 border-gray-600 text-white">
+                <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-gray-600 text-white">
                   <SelectValue placeholder="👥 Género" />
                 </SelectTrigger>
                 <SelectContent>
@@ -793,7 +791,7 @@ const CampeonatosPage = () => {
               </Select>*/}
 
               {/* Botones de control */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap justify-center">
                 <Button
                   onClick={() => {
                     cargarDatos()
@@ -827,7 +825,7 @@ const CampeonatosPage = () => {
               </div>
 
               {/* Stats rápidas */}
-              <div className="flex gap-2 text-center">
+              <div className="flex gap-2 text-center flex-wrap justify-center">
                 <div className="px-2 py-1 rounded-lg bg-blue-900/50">
                   <div className="text-sm font-bold text-blue-600">{atletas.length}</div>
                   <div className="text-xs text-blue-500">Atletas</div>

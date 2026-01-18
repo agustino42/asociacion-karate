@@ -16,12 +16,12 @@ type SearchParams = {
 export default async function CombatesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const supabase = await getSupabaseServerClient()
   const resolvedSearchParams = await searchParams
-  
+
   const pageInd = parseInt(resolvedSearchParams.pageInd || '1')
   const pageEq = parseInt(resolvedSearchParams.pageEq || '1')
   const pageCamp = parseInt(resolvedSearchParams.pageCamp || '1')
   const itemsPerPage = 5
-  
+
   const fromInd = (pageInd - 1) * itemsPerPage
   const toInd = fromInd + itemsPerPage - 1
   const fromEq = (pageEq - 1) * itemsPerPage
@@ -75,7 +75,7 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
       .order("fecha_combate", { ascending: false })
       .range(fromCamp, toCamp),
   ])
-  
+
   const totalPagesInd = Math.ceil((countInd || 0) / itemsPerPage)
   const totalPagesEq = Math.ceil((countEq || 0) / itemsPerPage)
   const totalPagesCamp = Math.ceil((countCamp || 0) / itemsPerPage)
@@ -98,10 +98,10 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
           </TabsList>
           <div className="flex gap-2 flex-wrap">
             <LimpiarCombatesButton />
-            <Link href="/admin/combates/campionatos">
+            <Link href="/admin/combates/campeonatos">
               <Button variant="secondary">
                 <Trophy className="mr-2 h-4 w-4" />
-                Campionatos
+                Campeonatos
               </Button>
             </Link>
             <Link href="/admin/combates/nuevo-individual">
@@ -120,8 +120,8 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
         </div>
 
         <TabsContent value="individuales">
-          <CombatesIndividualesTable 
-            combates={combatesIndividuales || []} 
+          <CombatesIndividualesTable
+            combates={combatesIndividuales || []}
             currentPage={pageInd}
             totalPages={totalPagesInd}
             totalItems={countInd || 0}
@@ -130,8 +130,8 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
         </TabsContent>
 
         <TabsContent value="campeonatos">
-          <CombatesIndividualesTable 
-            combates={combatesCampeonatos || []} 
+          <CombatesIndividualesTable
+            combates={combatesCampeonatos || []}
             currentPage={pageCamp}
             totalPages={totalPagesCamp}
             totalItems={countCamp || 0}
@@ -140,8 +140,8 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
         </TabsContent>
 
         <TabsContent value="equipos">
-          <CombatesEquiposTable 
-            combates={combatesEquipos || []} 
+          <CombatesEquiposTable
+            combates={combatesEquipos || []}
             currentPage={pageEq}
             totalPages={totalPagesEq}
             totalItems={countEq || 0}
