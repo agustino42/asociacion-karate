@@ -233,11 +233,10 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                   .map((evento, idx) => (
                     <div
                       key={idx}
-                      className={`p-3 rounded-lg border-l-4 ${
-                        evento.atleta === 1
-                          ? "border-red-500 bg-red-50 dark:bg-red-950"
-                          : "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                      }`}
+                      className={`p-3 rounded-lg border-l-4 ${evento.atleta === 1
+                        ? "border-red-500 bg-red-50 dark:bg-red-950"
+                        : "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -290,9 +289,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                   <span>
                     {combate.atleta1.nombre} {combate.atleta1.apellido}
                   </span>
-                  {combate.ganador?.id === combate.atleta1.id && (
-                    <Trophy className="h-6 w-6 text-yellow-500 animate-bounce" />
-                  )}
+                  {combate.ganador?.id === combate.atleta1.id}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">{combate.atleta1.cinturon}</p>
               </CardHeader>
@@ -332,9 +329,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                   <span>
                     {combate.atleta2.nombre} {combate.atleta2.apellido}
                   </span>
-                  {combate.ganador?.id === combate.atleta2.id && (
-                    <Trophy className="h-6 w-6 text-yellow-500 animate-bounce" />
-                  )}
+                  {combate.ganador?.id === combate.atleta2.id}
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">{combate.atleta2.cinturon}</p>
               </CardHeader>

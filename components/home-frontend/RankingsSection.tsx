@@ -17,7 +17,7 @@ interface RankingAtleta {
 
 interface RankingEquipo {
   id: string
-  equipos: { 
+  equipos: {
     nombre: string
     entrenadores?: { nombre: string; apellido: string }
   }
@@ -34,7 +34,7 @@ interface RankingsSectionProps {
 
 export default function RankingsSection({ rankingAtletas, rankingEquipos }: RankingsSectionProps) {
   return (
-    <motion.section 
+    <motion.section
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
@@ -51,7 +51,7 @@ export default function RankingsSection({ rankingAtletas, rankingEquipos }: Rank
         <Card className="hover:shadow-xl transition-shadow duration-300">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Trophy className="h-6 w-6 text-yellow-600" />
+
               <div>
                 <CardTitle>Ranking de Atletas</CardTitle>
                 <CardDescription>Top 10 atletas por puntos</CardDescription>
@@ -74,7 +74,7 @@ export default function RankingsSection({ rankingAtletas, rankingEquipos }: Rank
                     <TableRow key={ranking.id}>
                       <TableCell className="font-bold">
                         {index + 1}
-                        {index === 0 && <Trophy className="inline ml-1 h-4 w-4 text-yellow-500" />}
+                        {index === 0}
                       </TableCell>
                       <TableCell>
                         <div>
@@ -136,7 +136,7 @@ export default function RankingsSection({ rankingAtletas, rankingEquipos }: Rank
                     <TableRow key={ranking.id}>
                       <TableCell className="font-bold">
                         {index + 1}
-                        {index === 0 && <Trophy className="inline ml-1 h-4 w-4 text-yellow-500" />}
+                        {index === 0}
                       </TableCell>
                       <TableCell>
                         <div>

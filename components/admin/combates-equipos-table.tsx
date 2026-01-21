@@ -44,7 +44,7 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  
+
   const getEstadoBadge = (estado: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       programado: "secondary",
@@ -75,7 +75,7 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
       setDeletingId(null)
     }
   }
-// manejo de paginacion
+  // manejo de paginacion
   const handlePageChange = (page: number) => {
     const params = new URLSearchParams(searchParams.toString())
     params.set('pageEq', page.toString())
@@ -89,155 +89,151 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
           Mostrando {combates.length} de {totalItems} combates por equipos
         </p>
       </div>
-      
+
       <div className="border rounded-lg">
         <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Equipo 1</TableHead>
-            <TableHead>VS</TableHead>
-            <TableHead>Equipo 2</TableHead>
-            <TableHead>Puntos</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {combates.length === 0 ? (
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground">
-                No hay combates por equipos registrados
-              </TableCell>
+              <TableHead>Equipo 1</TableHead>
+              <TableHead>VS</TableHead>
+              <TableHead>Equipo 2</TableHead>
+              <TableHead>Puntos</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
-          ) : (
-            combates.map((combate) => (
-              <TableRow key={combate.id}>
-                <TableCell className={`font-medium ${combate.equipo_ganador?.id === combate.equipo1.id && combate.estado === 'finalizado' ? 'bg-green-50 text-green-800 font-bold' : ''}`}>
-                  {combate.equipo1.nombre}
-                  {combate.equipo_ganador?.id === combate.equipo1.id && (
-                    <Trophy className="inline ml-2 h-4 w-4 text-yellow-500" />
-                  )}
-                </TableCell>
-                <TableCell className="text-center font-bold text-muted-foreground">VS</TableCell>
-                <TableCell className={`font-medium ${combate.equipo_ganador?.id === combate.equipo2.id && combate.estado === 'finalizado' ? 'bg-green-50 text-green-800 font-bold' : ''}`}>
-                  {combate.equipo2.nombre}
-                  {combate.equipo_ganador?.id === combate.equipo2.id && (
-                    <Trophy className="inline ml-2 h-4 w-4 text-yellow-500" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <span className="font-mono text-lg font-bold">
-                      {combate.puntos_equipo1} - {combate.puntos_equipo2}
-                    </span>
-                    {combate.estado === 'finalizado' && (
-                      <div className="text-xs text-muted-foreground">
-                        {combate.equipo_ganador ? (
-                          <span className="text-green-600 font-medium">
-                            ✓ Ganador: {combate.equipo_ganador.nombre}
-                          </span>
-                        ) : (
-                          <span className="text-yellow-600 font-medium">⚖️ Empate</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{new Date(combate.fecha_combate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <Badge variant={getEstadoBadge(combate.estado)}>{combate.estado.replace("_", " ")}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2 items-center">
-                    {combate.estado === "finalizado" ? (
-                      <div className="text-sm mr-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            <Trophy className="h-3 w-3 mr-1" />
-                            Finalizado
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {combate.equipo_ganador ? (
-                            <span className="text-green-600 font-medium">
-                              🏆 {combate.equipo_ganador.nombre}
-                            </span>
-                          ) : (
-                            <span className="text-yellow-600 font-medium">⚖️ Empate</span>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <Link href={`/admin/combates/equipo/${combate.id}`}>
-                        <Button variant="outline" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          disabled={deletingId === combate.id}
-                        >
-                          {deletingId === combate.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar combate por equipos?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará permanentemente el combate entre{" "}
-                            <strong>{combate.equipo1.nombre}</strong> y <strong>{combate.equipo2.nombre}</strong>.
-                            <br /><br />
-                            {combate.estado === "en_curso" && (
-                              <span className="text-orange-600 font-medium">
-                                ⚠️ Este combate está en curso y se eliminará también de "Combates en Vivo".
-                              </span>
-                            )}
-                            {combate.estado === "finalizado" && (
-                              <span className="text-blue-600 font-medium">
-                                ℹ️ Este combate ya está finalizado. El resultado se perderá permanentemente.
-                              </span>
-                            )}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel disabled={deletingId === combate.id}>
-                            Cancelar
-                          </AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={() => handleDelete(combate.id)}
-                            disabled={deletingId === combate.id}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            {deletingId === combate.id ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Eliminando...
-                              </>
-                            ) : (
-                              "Eliminar Combate"
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+          </TableHeader>
+          <TableBody>
+            {combates.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  No hay combates por equipos registrados
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              combates.map((combate) => (
+                <TableRow key={combate.id}>
+                  <TableCell className={`font-medium ${combate.equipo_ganador?.id === combate.equipo1.id && combate.estado === 'finalizado' ? 'bg-green-50 text-green-800 font-bold' : ''}`}>
+                    {combate.equipo1.nombre}
+                    {combate.equipo_ganador?.id === combate.equipo1.id}
+                  </TableCell>
+                  <TableCell className="text-center font-bold text-muted-foreground">VS</TableCell>
+                  <TableCell className={`font-medium ${combate.equipo_ganador?.id === combate.equipo2.id && combate.estado === 'finalizado' ? 'bg-green-50 text-green-800 font-bold' : ''}`}>
+                    {combate.equipo2.nombre}
+                    {combate.equipo_ganador?.id === combate.equipo2.id}
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <span className="font-mono text-lg font-bold">
+                        {combate.puntos_equipo1} - {combate.puntos_equipo2}
+                      </span>
+                      {combate.estado === 'finalizado' && (
+                        <div className="text-xs text-muted-foreground">
+                          {combate.equipo_ganador ? (
+                            <span className="text-green-600 font-medium">
+                              ✓ Ganador: {combate.equipo_ganador.nombre}
+                            </span>
+                          ) : (
+                            <span className="text-yellow-600 font-medium">Empate</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{new Date(combate.fecha_combate).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Badge variant={getEstadoBadge(combate.estado)}>{combate.estado.replace("_", " ")}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2 items-center">
+                      {combate.estado === "finalizado" ? (
+                        <div className="text-sm mr-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+
+                              Finalizado
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {combate.equipo_ganador ? (
+                              <span className="text-green-600 font-medium">
+                                {combate.equipo_ganador.nombre}
+                              </span>
+                            ) : (
+                              <span className="text-yellow-600 font-medium"> Empate</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <Link href={`/admin/combates/equipo/${combate.id}`}>
+                          <Button variant="outline" size="icon">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            disabled={deletingId === combate.id}
+                          >
+                            {deletingId === combate.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar combate por equipos?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Se eliminará permanentemente el combate entre{" "}
+                              <strong>{combate.equipo1.nombre}</strong> y <strong>{combate.equipo2.nombre}</strong>.
+                              <br /><br />
+                              {combate.estado === "en_curso" && (
+                                <span className="text-orange-600 font-medium">
+                                  Este combate está en curso y se eliminará también de "Combates en Vivo".
+                                </span>
+                              )}
+                              {combate.estado === "finalizado" && (
+                                <span className="text-blue-600 font-medium">
+                                  Este combate ya está finalizado. El resultado se perderá permanentemente.
+                                </span>
+                              )}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={deletingId === combate.id}>
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(combate.id)}
+                              disabled={deletingId === combate.id}
+                              className="bg-red-600 hover:bg-red-700"
+                            >
+                              {deletingId === combate.id ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Eliminando...
+                                </>
+                              ) : (
+                                "Eliminar Combate"
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
-      
+
       {totalPages > 1 && (
         <div className="flex items-center justify-center space-x-2">
           <Button
@@ -249,7 +245,7 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
             <ChevronLeft className="h-4 w-4" />
             Anterior
           </Button>
-          
+
           <div className="flex items-center space-x-1">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <Button
@@ -263,7 +259,7 @@ export function CombatesEquiposTable({ combates, currentPage, totalPages, totalI
               </Button>
             ))}
           </div>
-          
+
           <Button
             variant="outline"
             size="sm"

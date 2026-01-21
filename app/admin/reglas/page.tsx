@@ -19,7 +19,7 @@ const Reglas = () => {
         <Card className="border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-6 w-6 text-blue-600" />
+
               Sistema de Puntuación
             </CardTitle>
           </CardHeader>
@@ -142,7 +142,6 @@ const Reglas = () => {
               </div>
 
               <div className="flex items-start gap-3">
-                <Trophy className="h-5 w-5 text-yellow-600 mt-1" />
                 <div>
                   <h4 className="font-semibold">Fin del Combate</h4>
                   <p className="text-sm text-muted-foreground">
@@ -179,7 +178,7 @@ const Reglas = () => {
       <Card className="border-2 border-purple-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-purple-600" />
+
             Sistema de Rankings y Puntuación
           </CardTitle>
         </CardHeader>

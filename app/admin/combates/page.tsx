@@ -93,14 +93,14 @@ export default async function CombatesPage({ searchParams }: { searchParams: Pro
         <div className="flex items-center justify-between flex-wrap gap-2">
           <TabsList>
             <TabsTrigger value="individuales">Combates 1v1</TabsTrigger>
-            <TabsTrigger value="campeonatos">🏆 Campeonatos</TabsTrigger>
+            <TabsTrigger value="campeonatos"> Campeonatos</TabsTrigger>
             <TabsTrigger value="equipos">Combates por Equipos</TabsTrigger>
           </TabsList>
           <div className="flex gap-2 flex-wrap">
             <LimpiarCombatesButton />
             <Link href="/admin/combates/campeonatos">
               <Button variant="secondary">
-                <Trophy className="mr-2 h-4 w-4" />
+
                 Campeonatos
               </Button>
             </Link>

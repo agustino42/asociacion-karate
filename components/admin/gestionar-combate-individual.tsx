@@ -20,12 +20,12 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
   // Estados de puntuación por atleta
   const [atleta1Points, setAtleta1Points] = useState({ yuko: 0, wazaari: 0, ippon: 0 })
   const [atleta2Points, setAtleta2Points] = useState({ yuko: 0, wazaari: 0, ippon: 0 })
-  
+
   // Estados del cronómetro
   const [time, setTime] = useState(combate.duracion_minutos * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [category, setCategory] = useState(`${combate.categoria} (${combate.duracion_minutos} min)`)
-  
+
   // Estados de finalización
   const [showHantei, setShowHantei] = useState(false)
   const [showWinnerDialog, setShowWinnerDialog] = useState(false)
@@ -135,7 +135,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
   const finalizarCompetencia = () => {
     const total1 = getTotalPoints(1)
     const total2 = getTotalPoints(2)
-    
+
     if (total1 > total2) {
       declareWinner(1, 'Victoria por Puntos')
     } else if (total2 > total1) {
@@ -210,7 +210,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url("/karate-bg.jpg")' }}>
-      
+
       {/* Header */}
       <div className="bg-linear-to-r from-gray-900 to-black text-white py-4 px-8 border-b-4 border-blue-600">
         <div className="container mx-auto">
@@ -219,13 +219,13 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
       </div>
 
       <div className="container mx-auto px-4 py-6 max-w-7xl">
-        
+
         {/* Marcador Central y Cronómetro */}
         <div className="mb-6">
           <Card className="bg-black/80 border-4 border-gray-700">
             <CardContent className="p-6">
               <div className="grid grid-cols-3 gap-8 items-center">
-                
+
                 {/* Puntaje Total Atleta 1 */}
                 <div className="text-center">
                   <div className="text-8xl font-black text-blue-500">{getTotalPoints(1)}</div>
@@ -235,7 +235,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                 <div className="text-center space-y-4">
                   <div className="text-sm text-gray-400 font-bold">TIEMPO RESTANTE</div>
                   <div className={`text-6xl font-black ${time <= 10 && time > 0 ? 'text-red-500 animate-pulse' : 'text-white'}`}>{formatTime(time)}</div>
-                  
+
                   <div className="flex gap-2 justify-center">
                     <Select value={category} onValueChange={(value) => {
                       setCategory(value)
@@ -254,8 +254,8 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                   </div>
 
                   <div className="flex gap-2 justify-center">
-                    <Button 
-                      onClick={() => setIsRunning(!isRunning)} 
+                    <Button
+                      onClick={() => setIsRunning(!isRunning)}
                       className={`${isRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} font-bold`}
                       size="lg"
                     >
@@ -281,7 +281,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
 
         {/* Controles de Atletas */}
         <div className="grid grid-cols-2 gap-6 mb-6">
-          
+
           {/* Atleta 1 (Azul) */}
           <Card className="bg-black/80 border-4 border-blue-600">
             <CardHeader className="bg-blue-600 pb-4">
@@ -295,24 +295,24 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-4 space-y-4">
               {/* Botones de Puntuación */}
               <div className="grid grid-cols-4 gap-2">
                 <Button onClick={() => addPoint(1, 'ippon')} className="bg-yellow-600 hover:bg-yellow-700 font-bold text-lg py-6">
-                  IPPON<br/><span className="text-sm">(3 pts)</span>
+                  IPPON<br /><span className="text-sm">(3 pts)</span>
                 </Button>
                 <Button onClick={() => addPoint(1, 'wazaari')} className="bg-orange-600 hover:bg-orange-700 font-bold text-lg py-6">
-                  WAZA-ARI<br/><span className="text-sm">(2 pts)</span>
+                  WAZA-ARI<br /><span className="text-sm">(2 pts)</span>
                 </Button>
                 <Button onClick={() => addPoint(1, 'yuko')} className="bg-green-600 hover:bg-green-700 font-bold text-lg py-6">
-                  YUKO<br/><span className="text-sm">(1 pt)</span>
+                  YUKO<br /><span className="text-sm">(1 pt)</span>
                 </Button>
                 <Button onClick={() => subtractPoint(1)} variant="destructive" className="font-bold text-lg py-6">
-                  RESTAR<br/><span className="text-sm">(-1)</span>
+                  RESTAR<br /><span className="text-sm">(-1)</span>
                 </Button>
               </div>
-              
+
               {/* Desglose de Puntos */}
               <div className="bg-gray-800 p-3 rounded space-y-2">
                 <div className="text-white text-sm font-bold">DESGLOSE:</div>
@@ -338,24 +338,24 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="p-4 space-y-4">
               {/* Botones de Puntuación */}
               <div className="grid grid-cols-4 gap-2">
                 <Button onClick={() => addPoint(2, 'ippon')} className="bg-yellow-600 hover:bg-yellow-700 font-bold text-lg py-6">
-                  IPPON<br/><span className="text-sm">(3 pts)</span>
+                  IPPON<br /><span className="text-sm">(3 pts)</span>
                 </Button>
                 <Button onClick={() => addPoint(2, 'wazaari')} className="bg-orange-600 hover:bg-orange-700 font-bold text-lg py-6">
-                  WAZA-ARI<br/><span className="text-sm">(2 pts)</span>
+                  WAZA-ARI<br /><span className="text-sm">(2 pts)</span>
                 </Button>
                 <Button onClick={() => addPoint(2, 'yuko')} className="bg-green-600 hover:bg-green-700 font-bold text-lg py-6">
-                  YUKO<br/><span className="text-sm">(1 pt)</span>
+                  YUKO<br /><span className="text-sm">(1 pt)</span>
                 </Button>
                 <Button onClick={() => subtractPoint(2)} variant="destructive" className="font-bold text-lg py-6">
-                  RESTAR<br/><span className="text-sm">(-1)</span>
+                  RESTAR<br /><span className="text-sm">(-1)</span>
                 </Button>
               </div>
-              
+
               {/* Desglose de Puntos */}
               <div className="bg-gray-800 p-3 rounded space-y-2">
                 <div className="text-white text-sm font-bold">DESGLOSE:</div>
@@ -372,7 +372,7 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
         {/* Botones de Control */}
         <div className="flex gap-4 justify-center mb-6">
           <Button onClick={finalizarCompetencia} size="lg" className="bg-green-600 hover:bg-green-700 font-bold px-8">
-            <Trophy className="mr-2 h-5 w-5" /> FINALIZAR COMBATE
+            FINALIZAR COMBATE
           </Button>
           <Button onClick={reiniciarCombate} variant="outline" size="lg" className="font-bold px-8">
             <RotateCcw className="mr-2 h-5 w-5" /> REINICIAR
@@ -398,12 +398,12 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
               <div className="text-center">
                 <p className="text-lg">Los puntos están empatados. Decisión de los jueces:</p>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-bold text-blue-400">{combate.atleta1.nombre} {combate.atleta1.apellido}</h3>
                   <div className="space-y-2">
-                    <Button 
+                    <Button
                       onClick={() => setAthlete1Win(!athlete1Win)}
                       className={`w-full ${athlete1Win ? 'bg-green-600' : 'bg-gray-600'}`}
                     >
@@ -422,11 +422,11 @@ export function GestionarCombateIndividual({ combate }: { combate: any }) {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="text-center space-y-4">
                   <h3 className="text-xl font-bold text-red-400">{combate.atleta2.nombre} {combate.atleta2.apellido}</h3>
                   <div className="space-y-2">
-                    <Button 
+                    <Button
                       onClick={() => setAthlete2Win(!athlete2Win)}
                       className={`w-full ${athlete2Win ? 'bg-green-600' : 'bg-gray-600'}`}
                     >

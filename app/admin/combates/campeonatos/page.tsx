@@ -283,10 +283,10 @@ const CampeonatosPage = () => {
               if (cp.ganador) {
                 if (cp.posicion === posicionBase && !nuevoAtleta1) {
                   nuevoAtleta1 = cp.ganador
-                  console.log(`✅ Asignando ${cp.ganador.nombre} a atleta1 de R${combate.ronda}-${combate.posicion}`)
+                  console.log(`Asignando ${cp.ganador.nombre} a atleta1 de R${combate.ronda}-${combate.posicion}`)
                 } else if (cp.posicion === posicionBase + 1 && !nuevoAtleta2) {
                   nuevoAtleta2 = cp.ganador
-                  console.log(`✅ Asignando ${cp.ganador.nombre} a atleta2 de R${combate.ronda}-${combate.posicion}`)
+                  console.log(`Asignando ${cp.ganador.nombre} a atleta2 de R${combate.ronda}-${combate.posicion}`)
                 }
               }
             })
@@ -449,9 +449,9 @@ const CampeonatosPage = () => {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <Badge variant={combate.estado === 'finalizado' ? 'default' : 'secondary'} className="text-xs font-bold">
-              {combate.estado === 'pendiente' && '⏳ Pendiente'}
-              {combate.estado === 'en_curso' && '🔥 En Vivo'}
-              {combate.estado === 'finalizado' && '✅ Finalizado'}
+              {combate.estado === 'pendiente' && 'Pendiente'}
+              {combate.estado === 'en_curso' && 'En Vivo'}
+              {combate.estado === 'finalizado' && 'Finalizado'}
             </Badge>
             <div className="text-xs font-mono text-gray-400">
               R{combate.ronda}-{combate.posicion}
@@ -479,8 +479,8 @@ const CampeonatosPage = () => {
                     if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, true)
                   }}
                 >
-                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-blue-600 hover:border-blue-500 bg-gray-800 text-white">
-                    <SelectValue placeholder="🥋 Atleta azul" />
+                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-blue-600 hover:border-blue-500 bg-gray-800 text-white w-full">
+                    <SelectValue placeholder="Atleta azul" />
                   </SelectTrigger>
                   <SelectContent>
                     {atletas
@@ -499,7 +499,7 @@ const CampeonatosPage = () => {
                 <Separator />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-gray-700 px-2 py-1 rounded-full border-2 border-orange-400 text-xs font-bold text-orange-300">
-                    <Swords className="h-3 w-3 inline mr-1" />
+
                     VS
                   </div>
                 </div>
@@ -519,8 +519,8 @@ const CampeonatosPage = () => {
                     if (atleta) asignarAtleta(combate.ronda, combate.posicion, atleta, false)
                   }}
                 >
-                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-red-600 hover:border-red-500 bg-gray-800 text-white">
-                    <SelectValue placeholder="🥋 Atleta rojo" />
+                  <SelectTrigger className="h-10 text-xs border-2 transition-colors border-red-600 hover:border-red-500 bg-gray-800 text-white w-full">
+                    <SelectValue placeholder="Atleta rojo" />
                   </SelectTrigger>
                   <SelectContent>
                     {atletas
@@ -551,7 +551,7 @@ const CampeonatosPage = () => {
                   </div>
                 ) : (
                   <div className="h-10 px-3 py-2 rounded-md border-2 border-blue-600/50 bg-gray-800/50 text-gray-400 flex items-center justify-center">
-                    <span className="text-xs">⏳ Esperando ganador...</span>
+                    <span className="text-xs">Esperando ganador...</span>
                   </div>
                 )}
               </div>
@@ -569,7 +569,7 @@ const CampeonatosPage = () => {
 
               {/* Atleta 2 (Rojo) - Ganador clasificado */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold flex items-center gap-1 text-red-400">
+                <label className="text-xs font-semibold flex items-center gap-1 text-red-400 w-full">
                   <Crown className="h-3 w-3" />
                   Clasificado Rojo:
                 </label>
@@ -581,7 +581,7 @@ const CampeonatosPage = () => {
                   </div>
                 ) : (
                   <div className="h-10 px-3 py-2 rounded-md border-2 border-red-600/50 bg-gray-800/50 text-gray-400 flex items-center justify-center">
-                    <span className="text-xs">⏳ Esperando ganador...</span>
+                    <span className="text-xs">Esperando ganador...</span>
                   </div>
                 )}
               </div>
@@ -597,7 +597,7 @@ const CampeonatosPage = () => {
                     <Crown className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs text-yellow-700 font-medium">🏆 GANADOR - AVANZA</div>
+                    <div className="text-xs text-yellow-700 font-medium">GANADOR - AVANZA</div>
                     <div className="font-bold text-yellow-900 text-sm">
                       {combate.ganador.nombre} {combate.ganador.apellido}
                     </div>
@@ -636,7 +636,7 @@ const CampeonatosPage = () => {
           ) : esperandoRival && (
             <div className="bg-linear-to-r from-blue-900/30 to-indigo-900/30 border-2 border-blue-500/50 rounded-xl p-3 animate-pulse">
               <div className="text-center">
-                <div className="text-xs text-blue-300 font-medium mb-2">⏳ ESPERANDO CLASIFICADOS</div>
+                <div className="text-xs text-blue-300 font-medium mb-2">ESPERANDO CLASIFICADOS</div>
                 {combatesPrevios.map((cp, idx) => (
                   <div key={idx} className="text-xs text-gray-300 mb-1">
                     {cp.ganador ? (
@@ -644,9 +644,9 @@ const CampeonatosPage = () => {
                         ✓ {cp.ganador.nombre} {cp.ganador.apellido}
                       </span>
                     ) : cp.estado === 'en_curso' ? (
-                      <span className="text-yellow-400">🔥 Combate en curso...</span>
+                      <span className="text-yellow-400">Combate en curso...</span>
                     ) : (
-                      <span className="text-gray-400">⏳ Pendiente R{cp.ronda}-{cp.posicion}</span>
+                      <span className="text-gray-400">Pendiente R{cp.ronda}-{cp.posicion}</span>
                     )}
                   </div>
                 ))}
@@ -658,7 +658,7 @@ const CampeonatosPage = () => {
           <div className="space-y-3">
             {/* Juez */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold flex items-center gap-1 text-gray-300">
+              <label className="text-xs font-semibold flex items-center gap-1 text-gray-300 w-full">
                 <User className="h-3 w-3" />
                 Juez Asignado:
               </label>
@@ -669,8 +669,8 @@ const CampeonatosPage = () => {
                   if (juez) asignarJuez(combate.ronda, combate.posicion, juez)
                 }}
               >
-                <SelectTrigger className="h-9 text-sm border-2 transition-colors border-gray-600 hover:border-blue-500 bg-gray-800 text-white">
-                  <SelectValue placeholder="👨⚖️ Seleccionar juez" />
+                <SelectTrigger className="h-9 text-sm border-2 transition-colors border-gray-600 hover:border-blue-500 bg-gray-800 text-white w-full">
+                  <SelectValue placeholder="Seleccionar juez" />
                 </SelectTrigger>
                 <SelectContent>
                   {jueces.map(juez => (
@@ -703,12 +703,12 @@ const CampeonatosPage = () => {
               {combate.estado === 'en_curso' ? (
                 <>
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  🔥 Abrir Combate
+                  Abrir Combate
                 </>
               ) : (
                 <>
                   <Play className="h-4 w-4 mr-2" />
-                  🥋 Iniciar Combate
+                  Iniciar Combate
                 </>
               )}
             </Button>
@@ -717,7 +717,7 @@ const CampeonatosPage = () => {
           {/* Información adicional */}
           {!puedeIniciar && combate.estado === 'pendiente' && (
             <div className="text-xs text-center text-amber-300 bg-amber-900/30 p-2 rounded-lg border border-amber-600">
-              <div className="font-semibold mb-1">⚠️ Completar:</div>
+              <div className="font-semibold mb-1"> Completar:</div>
               <div className="space-y-1 text-xs">
                 {!combate.atleta1 && <div>• Atleta Azul</div>}
                 {!combate.atleta2 && <div>• Atleta Rojo</div>}
@@ -757,7 +757,7 @@ const CampeonatosPage = () => {
               </div>
               <div className="text-center sm:text-left">
                 <h1 className="text-2xl sm:text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  🥋 Campeonato de Karate
+                  Campeonato de Karate
                 </h1>
                 <p className="text-sm text-gray-400">
                   Sistema de Eliminación Directa • Torneo Profesional
@@ -770,18 +770,18 @@ const CampeonatosPage = () => {
               {/* Selector de Género */}
               <Select value={generoSeleccionado} onValueChange={setGeneroSeleccionado}>
                 <SelectTrigger className="w-full sm:w-40 bg-gray-800 border-gray-600 text-white">
-                  <SelectValue placeholder="👥 Género" />
+                  <SelectValue placeholder="Género" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="Masculino">👨 Masculino</SelectItem>
-                  <SelectItem value="Femenino">👩 Femenino</SelectItem>
+                  <SelectItem value="Masculino">Masculino</SelectItem>
+                  <SelectItem value="Femenino">Femenino</SelectItem>
                 </SelectContent>
               </Select>
               {/* Selector de Categoría */}
               {/** <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger className="w-48 bg-gray-800 border-gray-600 text-white">
-                  <SelectValue placeholder="🥋 Seleccionar categoría" />
+                  <SelectValue placeholder=" Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   {categorias.map(cat => (
@@ -801,7 +801,7 @@ const CampeonatosPage = () => {
                   size="sm"
                   className="bg-green-900/20 border-green-600 text-green-400 hover:bg-green-900/40"
                 >
-                  🔄 Recargar Atletas
+                  Recargar Atletas
                 </Button>
                 <Button
                   onClick={() => {
@@ -812,7 +812,7 @@ const CampeonatosPage = () => {
                   size="sm"
                   className="bg-blue-900/20 border-blue-600 text-blue-400 hover:bg-blue-900/40"
                 >
-                  🔄 Actualizar
+                  Actualizar
                 </Button>
                 <Button
                   onClick={reiniciarCampeonato}
@@ -820,7 +820,7 @@ const CampeonatosPage = () => {
                   size="sm"
                   className="bg-red-900/20 border-red-600 text-red-400 hover:bg-red-900/40"
                 >
-                  🗑️ Reiniciar
+                  Reiniciar
                 </Button>
               </div>
 
@@ -983,7 +983,7 @@ const CampeonatosPage = () => {
                         {ronda3[0]?.ganador ? (
                           <div className="text-white text-center animate-in slide-in-from-bottom duration-1000">
                             <div className="font-bold text-xl sm:text-2xl mb-2 animate-pulse">
-                              🏆 {ronda3[0].ganador.nombre} {ronda3[0].ganador.apellido}
+                              {ronda3[0].ganador.nombre} {ronda3[0].ganador.apellido}
                             </div>
                             <div className="text-sm opacity-90 flex items-center justify-center gap-1">
                               <Medal className="h-4 w-4" />
@@ -993,7 +993,7 @@ const CampeonatosPage = () => {
                           </div>
                         ) : (
                           <div className="text-white text-center">
-                            <div className="font-bold text-lg">🏆 Por Definir</div>
+                            <div className="font-bold text-lg">Por Definir</div>
                             <div className="text-sm opacity-75">Esperando final...</div>
                           </div>
                         )}

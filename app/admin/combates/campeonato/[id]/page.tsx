@@ -31,7 +31,7 @@ export default async function CombateCampeonatoPage({ params }: { params: Promis
         <div className="mb-6 bg-linear-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-xl shadow-xl">
           <div className="text-center">
             <h1 className="text-2xl md:text-3xl font-bold mb-2">
-              🥋 COMBATE DE CAMPEONATO
+              COMBATE DE CAMPEONATO
             </h1>
             <div className="text-lg md:text-xl">
               <span className="bg-blue-500/30 px-3 py-1 rounded-full mr-2">
@@ -49,7 +49,7 @@ export default async function CombateCampeonatoPage({ params }: { params: Promis
           </div>
         </div>
 
-        <JuecesControlPanel 
+        <JuecesControlPanel
           combateId={combate.id}
           atleta1Data={{
             id: combate.atleta1.id,
