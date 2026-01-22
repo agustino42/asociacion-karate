@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 import Link from "next/link"
 import { JuecesTable } from "@/components/admin/jueces-table"
 import JuecesControlPanel from "@/components/admin/JuecesControlPanel"
+import KataControlPanel from "@/components/home-frontend/KataControlPanel"
 
 
 export default async function JuecesPage() {
@@ -27,7 +28,7 @@ export default async function JuecesPage() {
       </div>
 
       <JuecesTable jueces={jueces || []} />
-      {/** <JuecesControlPanel />*/}
+      <KataControlPanel />
     </div>
   )
 }
